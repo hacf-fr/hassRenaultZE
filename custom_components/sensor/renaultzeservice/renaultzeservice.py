@@ -11,17 +11,32 @@ class RenaultZEService:
     # API Gateway.
     servicesHost = 'https://www.services.renault-ze.com'
 
-    def __init__(self):
+    def __init__(self, tokenPath=None):
         """Initialize the sensor."""
         self._tokenData = None
+        self._tokenPath = tokenPath
+
+    @property
+    def tokenData(self):
+        if (self._tokenPath is not None):
+            try:
+                with open(self._tokenPath, 'r') as tokenStorage:
+                    return json.load(tokenStorage)
+            except FileNotFoundError:
+                return None
+        return self._tokenData
+
+    @tokenData.setter
+    def tokenData(self, value):
+        if (self._tokenPath is not None):
+            with open(self._tokenPath, 'w') as outfile:
+                json.dump(value, outfile)
+                return
+        self._tokenData = value
 
     async def getAccessToken(self, user, password):
-        if self._tokenData is not None:
-            # File contains refresh_token followed by the JWT token.
-            #with open('credentials_token.json', 'r') as tokenStorage:
-            #    tokenData = json.load(tokenStorage)
-            tokenData = self._tokenData
-
+        tokenData = self.tokenData
+        if tokenData is not None:
             # We could be using python_jwt but even the official ZE Services
             # ("decodeToken") does it this crude way, so why overcomplicate
             # things?
@@ -59,16 +74,17 @@ class RenaultZEService:
                             ) as response:
                         jsonresponse = await response.json()
 
+                        if jsonresponse.get('token', '') == '':
+                            self.tokenData = None
+                            return await self.getAccessToken(user, password)
+
                         # Overwrite the current token with
                         # this newly returned one.
                         tokenData['token'] = jsonresponse['token']
 
                         # Save this refresh token and new JWT token so we are
                         # nicer to Renault's authentication server.
-                        #with open('credentials_token.json', 'w') as outfile:
-                        #    json.dump(tokenData, outfile)
-                        self._tokenData = tokenData
-
+                        self.tokenData = tokenData
 
             self.accessToken = tokenData['token']
             # Return the token (as-is if valid, refreshed if not).
@@ -88,26 +104,33 @@ class RenaultZEService:
                     # login, so we create a smaller file of just the
                     # mandatory information.
                     tokenData = {
-                        'refreshToken': response.cookies['refreshToken'],
+                        'refreshToken': response.cookies['refreshToken'].value,
                         'xsrfToken': jsonresponse['xsrfToken'],
                         'token': jsonresponse['token']
                         }
 
                     # Save this refresh token and JWT token for future use
                     # so we are nicer to Renault's authentication server.
-                    #with open('credentials_token.json', 'w') as outfile:
-                    #    json.dump(tokenData, outfile)
-                    self._tokenData = tokenData
+                    self.tokenData = tokenData
 
                     self.accessToken = jsonresponse['token']
                     # The script will just want the token.
                     return jsonresponse['token']
 
-    async def apiCall(self, path):
+    async def apiGetCall(self, path):
         url = RenaultZEService.servicesHost + path
         headers = {'Authorization': 'Bearer ' + self.accessToken}
         async with aiohttp.ClientSession(
                 skip_auto_headers=['User-Agent']
                 ) as session:
             async with session.get(url, headers=headers) as response:
-                return json.loads(await response.text())
+                return await response.text()
+
+    async def apiPostCall(self, path):
+        url = RenaultZEService.servicesHost + path
+        headers = {'Authorization': 'Bearer ' + self.accessToken}
+        async with aiohttp.ClientSession(
+                skip_auto_headers=['User-Agent']
+                ) as session:
+            async with session.post(url, headers=headers) as response:
+                return await response.text()

@@ -23,7 +23,7 @@ To install the component, you will need to copy renaultze.py and renaultzeservic
  | - custom_components
  | | - sensor
  | | | - renaultze.py
- | | | - shared
+ | | | - renaultzeservice
  | | | | - renaultzeservice.py
 ```
 

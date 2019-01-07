@@ -1,20 +1,16 @@
-"""Support for Renault ZE services."""
+#!/usr/bin/env python3
 
 import asyncio
-import logging
-import json
+import time
 from datetime import datetime
-from .renaultzeservice.renaultzeservice import RenaultZEService
 
-import voluptuous as vol
+# All the shared functions are in this package.
+from custom_components.sensor.renaultzeservice.renaultzeservice import (
+    RenaultZEService
+    )
 
-from homeassistant.helpers.entity import Entity
-
-import homeassistant.helpers.config_validation as cv
-from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_NAME
-
-_LOGGER = logging.getLogger(__name__)
+# This script makes heavy use of JSON parsing.
+import json
 
 ATTR_CHARGING = 'charging'
 ATTR_PLUGGED = 'plugged'
@@ -22,30 +18,17 @@ ATTR_CHARGE_LEVEL = 'charge_level'
 ATTR_REMAINING_RANGE = 'remaining_range'
 ATTR_LAST_UPDATE = 'last_update'
 
-CONF_VIN = 'vin'
+# Load credentials.
+in_file = open('credentials.json', 'r')
+credentials = json.load(in_file)
+in_file.close()
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_USERNAME): cv.string,
-    vol.Required(CONF_PASSWORD): cv.string,
-    vol.Required(CONF_VIN): cv.string,
-    vol.Optional(CONF_NAME, default=None): cv.string,
-})
+# Get the VIN.
+vin = credentials['VIN']
 
 
-async def async_setup_platform(hass, config, async_add_entities,
-                               discovery_info=None):
-    """Setup the sensor platform."""
-    wrapper = RenaultZEService()
-    await wrapper.getAccessToken(config.get(CONF_USERNAME),
-                                 config.get(CONF_PASSWORD))
-
-    devices = [
-        RenaultZESensor(wrapper,
-                        config.get(CONF_VIN),
-                        config.get(CONF_NAME, config.get(CONF_VIN))
-                        )
-        ]
-    async_add_entities(devices)
+class Entity():
+    """Fake HASS Entity"""
 
 
 class RenaultZESensor(Entity):
@@ -111,3 +94,20 @@ class RenaultZESensor(Entity):
     def device_state_attributes(self):
         """Return the device state attributes."""
         return self._attrs
+
+
+async def async_setup_platform():
+    """Setup the sensor platform."""
+    wrapper = RenaultZEService('temp_token.json')
+    await wrapper.getAccessToken(credentials['ZEServicesUsername'],
+                                 credentials['ZEServicesPassword'])
+
+    device = RenaultZESensor(wrapper,
+                             vin,
+                             'Zoe')
+    await device.async_update()
+    print(device.device_state_attributes)
+
+loop = asyncio.get_event_loop()
+buffer = loop.run_until_complete(async_setup_platform())
+loop.close()
