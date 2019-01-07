@@ -1,12 +1,8 @@
 """Support for Renault ZE services."""
 
-import aiohttp
 import asyncio
-import json
-import base64
-import time
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from .shared.renaultzeservice import RenaultZEService
 
 import voluptuous as vol
