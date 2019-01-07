@@ -39,7 +39,7 @@ async def async_setup_platform(hass, config, async_add_entities,
                                  config.get(CONF_PASSWORD))
 
     devices = [
-        RenaultZESensor(wrapper, 
+        RenaultZESensor(wrapper,
                         config.get(CONF_VIN),
                         config.get(CONF_NAME, config.get(CONF_VIN))
                         )
@@ -78,7 +78,9 @@ class RenaultZESensor(Entity):
             )
         self._attrs[ATTR_CHARGE_LEVEL] = jsonresult[ATTR_CHARGE_LEVEL]
         self._attrs[ATTR_CHARGING] = jsonresult[ATTR_CHARGING]
-        self._attrs[ATTR_LAST_UPDATE] = datetime.fromtimestamp(jsonresult[ATTR_LAST_UPDATE] / 1000).isoformat()
+        self._attrs[ATTR_LAST_UPDATE] = datetime.fromtimestamp(
+            jsonresult[ATTR_LAST_UPDATE] / 1000
+            ).isoformat()
         self._attrs[ATTR_PLUGGED] = jsonresult[ATTR_PLUGGED]
         self._attrs[ATTR_REMAINING_RANGE] = jsonresult[ATTR_REMAINING_RANGE]
 
