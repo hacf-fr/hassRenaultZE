@@ -4,15 +4,17 @@ A custom component for [Home Assistant](http://home-assistant.io/) to add batter
 This is based on work by [edent](https://github.com/edent/Renault-Zoe-API)
 
 ## What's Available?
-The custom component will create a sensor with the battery information as attributes:
+The custom component will create a sensor with the battery charge level (in %), together with the following attributes:
 
 * plugged: false
 * remaining_range: 151
 * last_update: 2019-01-07T07:33:48
-* charge_level: 60
 * charging: false
 
 A few point to note. The `remaining_range` is in Kilometres, and the `charge_level` is in %.
+
+Regarding the updates, the sensor will attempt to run a "deep" update (ie. send a request for the car to update it's status on the server) every 20 minutes. This is based on both an internal flag and the last_update.
+Attempts to update within 20 minutes will be logged as warnings in the home assistant log. The warning message will be: "Send SMS Error" (sic)
 
 ## Getting started
 Initially, you'll need to make a note of your vehicule VIN, and register with [Renault ZE Services](https://www.services.renault-ze.com/). You will need to add the vin, the username and the password to your configuration file.
@@ -37,3 +39,11 @@ sensor:
     vin: XXXXXXXX
 ```
 
+## Logging
+If you are having issues with the component, please enable debug logging in your configuration.yaml, for example:
+```
+logger:
+  default: warn
+  logs:
+    custom_components.sensor.renaultze: debug
+```
