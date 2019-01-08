@@ -39,6 +39,27 @@ sensor:
     vin: XXXXXXXX
 ```
 
+## Converting attributes to sensors
+Template sensors can be added to your configuration.yaml to display the attributes as sensors.
+```
+sensor:
+  - platform: template
+    sensors:
+      mycar_plugged:
+        value_template: '{{ states.sensor.mycarbattery.attributes["plugged"] }}'
+        friendly_name: "Plugged"
+  - platform: template
+    sensors:
+      mycar_charging:
+        value_template: '{{ states.sensor.mycarbattery.attributes["charging"] }}'
+        friendly_name: "Charging"
+  - platform: template
+    sensors:
+      mycar_remaining_range:
+        value_template: '{{ states.sensor.mycarbattery.attributes["remaining_range"] }}'
+        friendly_name: "Range"
+```
+
 ## Logging
 If you are having issues with the component, please enable debug logging in your configuration.yaml, for example:
 ```
