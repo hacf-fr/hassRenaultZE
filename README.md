@@ -1,7 +1,7 @@
 # hassRenaultZE
 A custom component for [Home Assistant](http://home-assistant.io/) to add battery status from the [Renault ZE Services website](https://www.services.renault-ze.com).
 
-This is based on work by [edent] (https://github.com/edent/Renault-Zoe-API)
+This is based on work by [edent](https://github.com/edent/Renault-Zoe-API)
 
 ## What's Available?
 The custom component will create a sensor with the battery information as attributes:
