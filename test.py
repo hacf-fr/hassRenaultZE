@@ -2,11 +2,12 @@
 
 import asyncio
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # All the shared functions are in this package.
 from custom_components.sensor.renaultzeservice.renaultzeservice import (
-    RenaultZEService
+    RenaultZEService,
+    RenaultZEServiceException
     )
 
 # This script makes heavy use of JSON parsing.
@@ -27,6 +28,23 @@ in_file.close()
 vin = credentials['VIN']
 
 
+class logger():
+    def error(self, value):
+        print("Error: %s" % value)
+
+    def warning(self, value):
+        print("Warning: %s" % value)
+
+    def warn(self, value):
+        print("Warn: %s" % value)
+
+    def info(self, value):
+        print("Info: %s" % value)
+
+    def debug(self, value):
+        print("Debug: %s" % value)
+
+
 class Entity():
     """Fake HASS Entity"""
 
@@ -36,16 +54,17 @@ class RenaultZESensor(Entity):
 
     def __init__(self, wrapper, vin, name):
         """Initialize the sensor."""
+        _LOGGER.debug("Initialising RenaultZESensor %s" % name)
         self._state = None
         self._wrapper = wrapper
         self._battery_url = '/api/vehicle/' + vin + '/battery'
         self._name = name
         self._attrs = {}
-        self._attrs[ATTR_CHARGE_LEVEL] = None
         self._attrs[ATTR_CHARGING] = None
         self._attrs[ATTR_LAST_UPDATE] = None
         self._attrs[ATTR_PLUGGED] = None
         self._attrs[ATTR_REMAINING_RANGE] = None
+        self._lastdeepupdate = 0
 
     @property
     def name(self):
@@ -57,16 +76,15 @@ class RenaultZESensor(Entity):
         """Return the state of the sensor."""
         return self._state
 
-    async def async_update(self):
-        """Fetch new state data for the sensor.
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement."""
+        return '%'
 
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        textresult = await self._wrapper.apiGetCall(self._battery_url)
-        jsonresult = json.loads(textresult)
+    def process_response(self, jsonresult):
+        """Update new state data for the sensor."""
+        self._state = jsonresult[ATTR_CHARGE_LEVEL]
 
-        # Update attributes
-        self._attrs[ATTR_CHARGE_LEVEL] = jsonresult[ATTR_CHARGE_LEVEL]
         self._attrs[ATTR_CHARGING] = jsonresult[ATTR_CHARGING]
         self._attrs[ATTR_LAST_UPDATE] = datetime.fromtimestamp(
             jsonresult[ATTR_LAST_UPDATE] / 1000
@@ -74,21 +92,39 @@ class RenaultZESensor(Entity):
         self._attrs[ATTR_PLUGGED] = jsonresult[ATTR_PLUGGED]
         self._attrs[ATTR_REMAINING_RANGE] = jsonresult[ATTR_REMAINING_RANGE]
 
-        # Request server update if required
-        await self.async_check_update_server(jsonresult)
+        # Check lastserverupdate (prevent 
+        lastserverupdate = jsonresult[ATTR_LAST_UPDATE] / 1000
+        if lastserverupdate > self._lastdeepupdate:
+            self._lastdeepupdate = lastserverupdate
 
-    async def async_check_update_server(self, jsonresult):
+    async def async_update(self):
+        """Fetch new state data for the sensor.
+
+        This is the only method that should fetch new data for Home Assistant.
+        """
+        # Run standard update
+        try:
+            jsonresult = await self._wrapper.apiGetCall(self._battery_url)
+            _LOGGER.debug("Update result: %s" % jsonresult)
+            self.process_response(jsonresult)
+            await self.async_deep_update()
+        except RenaultZEServiceException as e:
+            _LOGGER.error("Update failed: %s" % e)
+
+
+    async def async_deep_update(self):
         """Send update request to car.
 
-        This should only be called if the car is charging,
-        and the data was last updated more than 20 minutes ago.
+        This should not be called more than every 20 minutes.
         """
-        if jsonresult[ATTR_CHARGING]:
-            last_serverupdate = int(jsonresult[ATTR_LAST_UPDATE] / 1000)
-            min_nextserverupdate = last_serverupdate + 60 * 20
+        try:
+            nextdeepupdate = self._lastdeepupdate + 60 * 20
 
-            if (int(time.time()) > min_nextserverupdate):
+            if (int(time.time()) > nextdeepupdate):
                 await self._wrapper.apiPostCall(self._battery_url)
+                _LOGGER.debug("Deep update succeeded")
+        except RenaultZEServiceException as e:
+                _LOGGER.warning("Deep update failed: %s" % e)
 
     @property
     def device_state_attributes(self):
@@ -96,17 +132,21 @@ class RenaultZESensor(Entity):
         return self._attrs
 
 
+_LOGGER = logger()
+
 async def async_setup_platform():
     """Setup the sensor platform."""
-    wrapper = RenaultZEService('temp_token.json')
-    await wrapper.getAccessToken(credentials['ZEServicesUsername'],
-                                 credentials['ZEServicesPassword'])
+    wrapper = RenaultZEService('temp_token.json',
+                               credentials['ZEServicesUsername'],
+                               credentials['ZEServicesPassword'])
+    # Check we can get a token
+    token = await wrapper.getAccessToken()
 
     device = RenaultZESensor(wrapper,
                              vin,
                              'Zoe')
     await device.async_update()
-    print(device.device_state_attributes)
+    print("%s: %s%s %s" % (device.name, device.state, device.unit_of_measurement, device.device_state_attributes))
 
 loop = asyncio.get_event_loop()
 buffer = loop.run_until_complete(async_setup_platform())
