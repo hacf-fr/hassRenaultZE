@@ -137,7 +137,7 @@ class RenaultZEService:
                 ) as session:
             async with session.get(url, headers=headers) as response:
                 responsetext = await response.text()
-                if responsetext is None:
+                if responsetext == '':
                     responsetext = '{}'
                 jsonresponse = json.loads(responsetext)
                 if 'message' in jsonresponse:
@@ -153,7 +153,7 @@ class RenaultZEService:
                 ) as session:
             async with session.post(url, headers=headers) as response:
                 responsetext = await response.text()
-                if responsetext is None:
+                if responsetext == '':
                     responsetext = '{}'
                 jsonresponse = json.loads(responsetext)
                 if 'message' in jsonresponse:
