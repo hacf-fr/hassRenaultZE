@@ -129,6 +129,7 @@ class RenaultZESensor(Entity):
             if (int(time.time()) > nextdeepupdate):
                 await self._wrapper.apiPostCall(self._battery_url)
                 _LOGGER.debug("Deep update succeeded")
+                self._lastdeepupdate = int(time.time())
         except RenaultZEServiceException as e:
                 _LOGGER.warning("Deep update failed: %s" % e)
 
