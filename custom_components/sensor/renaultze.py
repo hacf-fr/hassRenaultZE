@@ -66,10 +66,6 @@ class RenaultZESensor(Entity):
         self._battery_url = '/api/vehicle/' + vin + '/battery'
         self._name = name
         self._attrs = {}
-        self._attrs[ATTR_CHARGING] = None
-        self._attrs[ATTR_LAST_UPDATE] = None
-        self._attrs[ATTR_PLUGGED] = None
-        self._attrs[ATTR_REMAINING_RANGE] = None
         self._lastdeepupdate = 0
 
     @property
