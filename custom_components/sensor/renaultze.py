@@ -79,6 +79,11 @@ class RenaultZESensor(Entity):
         return self._state
 
     @property
+    def device_state_attributes(self):
+        """Return the device state attributes."""
+        return self._attrs
+
+    @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
         return '%'
@@ -128,8 +133,3 @@ class RenaultZESensor(Entity):
                 self._lastdeepupdate = int(time.time())
         except RenaultZEServiceException as e:
                 _LOGGER.warning("Deep update failed: %s" % e)
-
-    @property
-    def device_state_attributes(self):
-        """Return the device state attributes."""
-        return self._attrs
