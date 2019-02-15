@@ -46,19 +46,19 @@ sensor:
   - platform: template
     sensors:
       mycar_plugged:
-        value_template: '{{ {{ state_attr("sensor.mycarbattery" , "plugged") }}'
+        value_template: "{{ {{ state_attr('sensor.mycarbattery' , 'plugged') }}"
         friendly_name: "Plugged"
   - platform: template
     sensors:
       mycar_charging:
-        value_template: '{{ state_attr("sensor.mycarbattery" , "charging") }}'
+        value_template: "{{ state_attr('sensor.mycarbattery' , 'charging') }}"
         friendly_name: "Charging"
   - platform: template
     sensors:
       mycar_remaining_range:
-        value_template: '{{ state_attr("sensor.mycarbattery" , "remaining_range") }}'
+        value_template: "{{ state_attr('sensor.mycarbattery' , 'remaining_range') }}"
         friendly_name: "Range"
-        unit_of_measurement: 'km'
+        unit_of_measurement: "km"
 ```
 
 ## Logging
