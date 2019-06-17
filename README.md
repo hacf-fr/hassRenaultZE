@@ -19,7 +19,7 @@ Attempts to update within 20 minutes will be logged as warnings in the home assi
 ## Getting started
 Initially, you'll need to make a note of your vehicule VIN, and register with [Renault ZE Services](https://www.services.renault-ze.com/). You will need to add the vin, the username and the password to your configuration file.
 
-To install the component, you will need to copy renaultze.py and renaultzeservice.py to you local configuration folder:
+To install the component, you will need to copy the four py files to you local configuration folder:
 ```
  - .homeassistant
  | - custom_components
