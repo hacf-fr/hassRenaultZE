@@ -23,9 +23,11 @@ To install the component, you will need to copy renaultze.py and renaultzeservic
 ```
  - .homeassistant
  | - custom_components
- | | - sensor
- | | | - renaultze.py
+ | | - renaultze
+ | | | - __init__.py
+ | | | - sensor.py
  | | | - renaultzeservice
+ | | | | - __init__.py
  | | | | - renaultzeservice.py
 ```
 
