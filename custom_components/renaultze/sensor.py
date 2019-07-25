@@ -1,4 +1,4 @@
-"""Support for Renault ZE services."""
+"""Support for MyRenault services."""
 
 import asyncio
 import logging
@@ -20,11 +20,11 @@ from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_NAME
 
 _LOGGER = logging.getLogger(__name__)
 
-ATTR_CHARGING = 'chargeStatus'
-ATTR_PLUGGED = 'plugStatus'
-ATTR_CHARGE_LEVEL = 'batteryLevel'
-ATTR_REMAINING_RANGE = 'rangeHvacOff'
-ATTR_LAST_UPDATE = 'lastUpdateTime'
+ATTR_CHARGING = 'charging'
+ATTR_PLUGGED = 'plugged'
+ATTR_CHARGE_LEVEL = 'charge_level'
+ATTR_REMAINING_RANGE = 'remaining_range'
+ATTR_LAST_UPDATE = 'last_update'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
@@ -92,12 +92,12 @@ class RenaultZESensor(Entity):
 
     def process_response(self, jsonresult):
         """Update new state data for the sensor."""
-        self._state = jsonresult[ATTR_CHARGE_LEVEL]
+        self._state = jsonresult['batteryLevel']
 
-        self._attrs[ATTR_CHARGING] = jsonresult[ATTR_CHARGING]
-        self._attrs[ATTR_LAST_UPDATE] = jsonresult[ATTR_LAST_UPDATE]
-        self._attrs[ATTR_PLUGGED] = jsonresult[ATTR_PLUGGED]
-        self._attrs[ATTR_REMAINING_RANGE] = jsonresult[ATTR_REMAINING_RANGE]
+        self._attrs[ATTR_CHARGING] = jsonresult['chargeStatus'] > 0
+        self._attrs[ATTR_LAST_UPDATE] = jsonresult['lastUpdateTime']
+        self._attrs[ATTR_PLUGGED] = jsonresult['plugStatus'] > 0
+        self._attrs[ATTR_REMAINING_RANGE] = jsonresult['rangeHvacOff']
 
     async def async_update(self):
         """Fetch new state data for the sensor.
