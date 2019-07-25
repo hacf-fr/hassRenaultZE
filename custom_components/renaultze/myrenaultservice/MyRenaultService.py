@@ -54,7 +54,7 @@ class MyRenaultService:
                 self._kamereon_api_key = jsonresponse['servers']['wiredProd']['apikey']
 
     async def gigya_login(self, session):
-        print('gigya_login')
+        #print('gigya_login')
         payload = {'loginID': self._gigya_username, 'password': self._gigya_password, 'apiKey': self._gigya_api_key}
         url = self._gigya_root_url + '/accounts.login?' + urllib.parse.urlencode(payload)
         async with session.get(url) as response:
@@ -68,7 +68,7 @@ class MyRenaultService:
             self._gigya_session_details = jsonresponse
 
     async def gigya_get_account_info(self, session, gigya_cookie_value):
-        print('gigya_get_account_info')
+        #print('gigya_get_account_info')
         payload = {'oauth_token': gigya_cookie_value}
         url = self._gigya_root_url + '/accounts.getAccountInfo?' + urllib.parse.urlencode(payload)
         async with session.get(url) as response:
@@ -83,7 +83,7 @@ class MyRenaultService:
             self._kamereon_person_id = self._gigya_account_details['data']['personId']
 
     async def gigya_get_jwt(self, session, gigya_cookie_value):
-        print('gigya_get_jwt')
+        #print('gigya_get_jwt')
         payload = {'oauth_token': gigya_cookie_value, 'fields': 'data.personId,data.gigyaDataCenter', 'expiration': 900}
         url = self._gigya_root_url + '/accounts.getJWT?' + urllib.parse.urlencode(payload)
         async with session.get(url) as response:
@@ -94,11 +94,11 @@ class MyRenaultService:
             if 'message' in jsonresponse:
                 self.tokenData = None
                 raise MyRenaultServiceException(jsonresponse['message'])
-            jsonresponse['expiry'] = time.strftime(jsonresponse['time'], "%Y-%m-%dT%H:%M:%SZ") + time.struct_time(tm_sec=900)
+            jsonresponse['expiry'] = datetime.datetime.strptime(jsonresponse['time'], "%Y-%m-%dT%H:%M:%S.%fZ") + datetime.timedelta(seconds=900)
             self._gigya_jwt_details = jsonresponse
 
     async def kamereon_get_account_id(self, session, gigya_jwt_token):
-        print('kamereon_get_account_id')
+        #print('kamereon_get_account_id')
         payload = {'country': 'FR'}
         headers = {'x-gigya-id_token': gigya_jwt_token, 'apikey': self._kamereon_api_key}
         url = self._kamereon_root_url + '/commerce/v1/persons/' + self._kamereon_person_id + '?' + urllib.parse.urlencode(payload)
@@ -113,8 +113,8 @@ class MyRenaultService:
             self._kamereon_account_id = jsonresponse['accounts'][0]['accountId']
 
     async def get_gigya_token(self, session):
-        print('get_gigya_token')
-        if (self._gigya_jwt_details is None or time.gmtime() > self._gigya_jwt_details['expiry']):
+        #print('get_gigya_token')
+        if (self._gigya_jwt_details is None or (datetime.datetime.utcnow() > self._gigya_jwt_details['expiry'])):
             await self.gigya_login(session)
             gigya_cookie_value = self._gigya_session_details['sessionInfo']['cookieValue']
             if (self._kamereon_person_id is None):
@@ -123,7 +123,7 @@ class MyRenaultService:
         return self._gigya_jwt_details['id_token']
 
     async def get_kamereon_access_token(self, session, gigya_jwt_token):
-        print('get_kamereon_access_token')
+        #print('get_kamereon_access_token')
         if (self._kamereon_person_id is None):
             await self.get_gigya_token(session)
 
