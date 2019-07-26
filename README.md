@@ -1,7 +1,7 @@
 # hassRenaultZE
-A custom component for [Home Assistant](http://home-assistant.io/) to add battery status from the [Renault ZE Services website](https://www.services.renault-ze.com).
+A custom component for [Home Assistant](http://home-assistant.io/) to add battery status from the MyRenault services.
 
-This is based on work by [edent](https://github.com/edent/Renault-Zoe-API)
+This is based on work by [jamesremuscat](https://github.com/jamesremuscat/pyze)
 
 ## What's Available?
 The custom component will create a sensor with the battery charge level (in %), together with the following attributes:
@@ -17,7 +17,7 @@ Regarding the updates, the sensor will attempt to run a "deep" update (ie. send 
 Attempts to update within 20 minutes will be logged as warnings in the home assistant log. The warning message will be: "Send SMS Error" (sic)
 
 ## Getting started
-Initially, you'll need to make a note of your vehicule VIN, and register with [Renault ZE Services](https://www.services.renault-ze.com/). You will need to add the vin, the username and the password to your configuration file.
+Initially, you'll need to make a note of your vehicule VIN, and register with MyRenault application. You will need to add the vin, the language code for your country, the username and the password to your configuration file.
 
 To install the component, you will need to copy the four py files to you local configuration folder:
 ```
@@ -26,9 +26,9 @@ To install the component, you will need to copy the four py files to you local c
  | | - renaultze
  | | | - __init__.py
  | | | - sensor.py
- | | | - renaultzeservice
+ | | | - myrenaultservice
  | | | | - __init__.py
- | | | | - renaultzeservice.py
+ | | | | - MyRenaultService.py
 ```
 
 In your configuration.yaml, you will need to add a sensor:
@@ -39,6 +39,7 @@ sensor:
     username: myemail@address.com
     password: !secret renaultze_password
     vin: XXXXXXXX
+    android_lng: fr_FR
 ```
 
 ## Converting attributes to sensors
