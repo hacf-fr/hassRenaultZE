@@ -46,7 +46,7 @@ async def async_setup_platform(hass, config, async_add_entities,
     _LOGGER.debug("Initialising renaultze platform")
     wrapper = MyRenaultService(config.get(CONF_USERNAME),
                                config.get(CONF_PASSWORD))
-    wrapper.initialise_configuration(config.get(CONF_ANDROID_LNG))
+    await wrapper.initialise_configuration(config.get(CONF_ANDROID_LNG))
 
     devices = [
         RenaultZESensor(wrapper,
@@ -108,6 +108,6 @@ class RenaultZESensor(Entity):
         try:
             jsonresult = await self._wrapper.apiGetBatteryStatus(self._vin)
             _LOGGER.debug("Update result: %s" % jsonresult)
-            self.process_response(jsonresult['attributes'])
+            self.process_response(jsonresult['data']['attributes'])
         except MyRenaultServiceException as e:
             _LOGGER.error("Update failed: %s" % e)
