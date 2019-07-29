@@ -31,7 +31,7 @@ class MyRenaultService:
         self._kamereon_person_id = None
         self._kamereon_account_id = None
 
-    def initialise_configuration(self, gigya_root_url, gigya_api_key, kamereon_root_url, kamereon_api_key):
+    def initialise_configuration_url(self, gigya_root_url, gigya_api_key, kamereon_root_url, kamereon_api_key):
         """Initialize the sensor."""
         self._gigya_root_url = gigya_root_url
         self._gigya_api_key = gigya_api_key
@@ -48,10 +48,12 @@ class MyRenaultService:
                     responsetext = '{}'
                 jsonresponse = json.loads(responsetext)
 
-                self._gigya_root_url = jsonresponse['servers']['gigyaProd']['target']
-                self._gigya_api_key = jsonresponse['servers']['gigyaProd']['apikey']
-                self._kamereon_root_url = jsonresponse['servers']['wiredProd']['target']
-                self._kamereon_api_key = jsonresponse['servers']['wiredProd']['apikey']
+                self.initialise_configuration_url(
+                    jsonresponse['servers']['gigyaProd']['target'],
+                    jsonresponse['servers']['gigyaProd']['apikey'],
+                    jsonresponse['servers']['wiredProd']['target'],
+                    jsonresponse['servers']['wiredProd']['apikey']
+                    )
 
     async def gigya_login(self, session):
         #print('gigya_login')
