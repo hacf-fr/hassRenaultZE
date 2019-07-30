@@ -1,0 +1,8 @@
+{
+  "domain": "renaultze",
+  "name": "Renault ZE",
+  "documentation": "https://github.com/epenet/hassRenaultZE",
+  "dependencies": [],
+  "codeowners": ["@epenet"],
+  "requirements": []
+}
