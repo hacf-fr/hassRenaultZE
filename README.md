@@ -25,6 +25,7 @@ To install the component, you will need to copy the four py files to you local c
  | - custom_components
  | | - renaultze
  | | | - __init__.py
+ | | | - manifest.json
  | | | - sensor.py
  | | | - myrenaultservice
  | | | | - __init__.py
