@@ -36,7 +36,7 @@ In your configuration.yaml, you will need to add a sensor:
 ```
 sensor:
   - platform: renaultze
-    name: MyCarBattery
+    name: MyCar
     username: myemail@address.com
     password: !secret renaultze_password
     vin: XXXXXXXX
@@ -50,19 +50,31 @@ sensor:
   - platform: template
     sensors:
       mycar_plugged:
-        value_template: "{{ {{ state_attr('sensor.mycarbattery' , 'plugged') }}"
+        value_template: "{{ {{ state_attr('sensor.mycar' , 'plugged') }}"
         friendly_name: "Plugged"
   - platform: template
     sensors:
       mycar_charging:
-        value_template: "{{ state_attr('sensor.mycarbattery' , 'charging') }}"
+        value_template: "{{ state_attr('sensor.mycar' , 'charging') }}"
         friendly_name: "Charging"
   - platform: template
     sensors:
       mycar_remaining_range:
-        value_template: "{{ state_attr('sensor.mycarbattery' , 'remaining_range') }}"
+        value_template: "{{ state_attr('sensor.mycar' , 'remaining_range') }}"
         friendly_name: "Range"
         unit_of_measurement: "km"
+  - platform: template
+    sensors:
+      mycar_mileage:
+        value_template: "{{ state_attr('sensor.mycar' , 'mileage') }}"
+        friendly_name: "Mileage"
+        unit_of_measurement: "km"
+  - platform: template
+    sensors:
+      mycar_battery_temperature:
+        value_template: "{{ state_attr('sensor.mycar' , 'battery_temperature') }}"
+        friendly_name: "Battery temperature"
+        unit_of_measurement: "°C"
 ```
 
 ## Logging

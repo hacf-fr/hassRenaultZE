@@ -165,3 +165,7 @@ class MyRenaultService:
     async def apiGetBatteryStatus(self, vin):
         path = '/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/%s/battery-status' % vin
         return await self.apiGetCall(path)
+
+    async def apiGetMileage(self, vin):
+        path = '/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/%s/cockpit' % vin
+        return await self.apiGetCall(path)

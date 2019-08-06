@@ -25,6 +25,8 @@ ATTR_PLUGGED = 'plugged'
 ATTR_CHARGE_LEVEL = 'charge_level'
 ATTR_REMAINING_RANGE = 'remaining_range'
 ATTR_LAST_UPDATE = 'last_update'
+ATTR_BATTERY_TEMPERATURE = 'battery_temperature'
+ATTR_MILEAGE = 'mileage'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
@@ -90,14 +92,19 @@ class RenaultZESensor(Entity):
         """Return the unit of measurement."""
         return '%'
 
-    def process_response(self, jsonresult):
+    def process_battery_response(self, jsonresult):
         """Update new state data for the sensor."""
         self._state = jsonresult['batteryLevel']
 
         self._attrs[ATTR_CHARGING] = jsonresult['chargeStatus'] > 0
         self._attrs[ATTR_LAST_UPDATE] = jsonresult['lastUpdateTime']
         self._attrs[ATTR_PLUGGED] = jsonresult['plugStatus'] > 0
+        self._attrs[ATTR_BATTERY_TEMPERATURE] = jsonresult['batteryTemperature']
         self._attrs[ATTR_REMAINING_RANGE] = jsonresult['rangeHvacOff']
+
+    def process_mileage_response(self, jsonresult):
+        """Update new state data for the sensor."""
+        self._attrs[ATTR_MILEAGE] = jsonresult['totalMileage']
 
     async def async_update(self):
         """Fetch new state data for the sensor.
@@ -107,7 +114,14 @@ class RenaultZESensor(Entity):
         # Run standard update
         try:
             jsonresult = await self._wrapper.apiGetBatteryStatus(self._vin)
-            _LOGGER.debug("Update result: %s" % jsonresult)
-            self.process_response(jsonresult['data']['attributes'])
+            _LOGGER.debug("Battery update result: %s" % jsonresult)
+            self.process_battery_response(jsonresult['data']['attributes'])
         except MyRenaultServiceException as e:
-            _LOGGER.error("Update failed: %s" % e)
+            _LOGGER.error("Battery update failed: %s" % e)
+
+        try:
+            jsonresult = await self._wrapper.apiGetMileage(self._vin)
+            _LOGGER.debug("Mileage update result: %s" % jsonresult)
+            self.process_mileage_response(jsonresult['data']['attributes'])
+        except MyRenaultServiceException as e:
+            _LOGGER.error("Mileage update failed: %s" % e)
