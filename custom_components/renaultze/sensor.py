@@ -99,7 +99,10 @@ class RenaultZESensor(Entity):
         self._attrs[ATTR_CHARGING] = jsonresult['chargeStatus'] > 0
         self._attrs[ATTR_LAST_UPDATE] = jsonresult['lastUpdateTime']
         self._attrs[ATTR_PLUGGED] = jsonresult['plugStatus'] > 0
-        self._attrs[ATTR_BATTERY_TEMPERATURE] = jsonresult['batteryTemperature']
+        if "batteryTemperature" in jsonresult:
+            self._attrs[ATTR_BATTERY_TEMPERATURE] = jsonresult["batteryTemperature"]
+        else:
+            self._attrs[ATTR_BATTERY_TEMPERATURE] = "not_available"
         self._attrs[ATTR_REMAINING_RANGE] = jsonresult['rangeHvacOff']
 
     def process_mileage_response(self, jsonresult):
