@@ -101,8 +101,6 @@ class RenaultZESensor(Entity):
         self._attrs[ATTR_PLUGGED] = jsonresult['plugStatus'] > 0
         if "batteryTemperature" in jsonresult:
             self._attrs[ATTR_BATTERY_TEMPERATURE] = jsonresult["batteryTemperature"]
-        else:
-            self._attrs[ATTR_BATTERY_TEMPERATURE] = "unavailable"
         self._attrs[ATTR_REMAINING_RANGE] = jsonresult['rangeHvacOff']
 
     def process_mileage_response(self, jsonresult):
