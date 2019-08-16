@@ -50,7 +50,7 @@ sensor:
   - platform: template
     sensors:
       mycar_plugged:
-        value_template: "{{ {{ state_attr('sensor.mycar' , 'plugged') }}"
+        value_template: "{{ state_attr('sensor.mycar' , 'plugged') }}"
         friendly_name: "Plugged"
   - platform: template
     sensors:
