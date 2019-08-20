@@ -4,5 +4,5 @@
   "documentation": "https://github.com/epenet/hassRenaultZE",
   "dependencies": [],
   "codeowners": ["@epenet"],
-  "requirements": []
+  "requirements": ["pyze==0.2.2"]
 }
