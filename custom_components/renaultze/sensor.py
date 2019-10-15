@@ -7,7 +7,7 @@ import json
 import aiohttp
 import traceback
 from datetime import datetime, timedelta
-from pyze.api import Gigya, Kamereon, Vehicle
+from pyze.api import Gigya, Kamereon, Vehicle, CredentialStore
 
 import voluptuous as vol
 
@@ -50,7 +50,10 @@ async def async_setup_platform(hass, config, async_add_entities,
     g_key = None
     k_url = None
     k_key = None
-    
+
+    cred = CredentialStore()
+    cred.clear()
+
     url = 'https://renault-wrd-prod-1-euw1-myrapp-one.s3-eu-west-1.amazonaws.com/configuration/android/config_%s.json' % config.get(CONF_ANDROID_LNG)
     async with aiohttp.ClientSession(
             ) as session:
@@ -66,8 +69,9 @@ async def async_setup_platform(hass, config, async_add_entities,
             k_key = jsonresponse['servers']['wiredProd']['apikey']
 
     g = Gigya(api_key=g_key,root_url=g_url)
-    g.login(config.get(CONF_USERNAME),
-                          config.get(CONF_PASSWORD))
+    if not g.login(config.get(CONF_USERNAME),
+                          config.get(CONF_PASSWORD)):
+        raise RenaultZEError("Login failed")
     g.account_info()
     
     k = Kamereon(api_key=k_key,root_url=k_url,gigya=g)
@@ -153,3 +157,6 @@ class RenaultZESensor(Entity):
             self.process_mileage_response(jsonresult)
         except Exception as e:
             _LOGGER.warning("Mileage update failed: %s" % traceback.format_exc())
+
+class RenaultZEError(Exception):
+    pass
