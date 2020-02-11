@@ -29,6 +29,7 @@ ATTR_MILEAGE = 'mileage'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
+CONF_K_ACCOUNTID = 'k_account_id'
 
 SCAN_INTERVAL = timedelta(seconds=60)
 
@@ -38,6 +39,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_VIN): cv.string,
     vol.Optional(CONF_ANDROID_LNG, default='fr_FR'): cv.string,
     vol.Optional(CONF_NAME, default=None): cv.string,
+    vol.Optional(CONF_K_ACCOUNTID, default=''): cv.string,
 })
 
 
@@ -50,6 +52,7 @@ async def async_setup_platform(hass, config, async_add_entities,
     g_key = None
     k_url = None
     k_key = None
+    k_account_id = config.get(CONF_K_ACCOUNTID, '')
 
     cred = CredentialStore()
     cred.clear()
@@ -75,7 +78,9 @@ async def async_setup_platform(hass, config, async_add_entities,
     g.account_info()
     
     k = Kamereon(api_key=k_key,root_url=k_url,gigya=g)
-    
+    if k_account_id != '':
+        k.set_account_id(k_account_id)
+
     v = Vehicle(config.get(CONF_VIN), k)
 
     devices = [
