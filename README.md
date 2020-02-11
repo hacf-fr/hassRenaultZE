@@ -36,7 +36,13 @@ sensor:
     password: !secret renaultze_password
     vin: XXXXXXXX
     android_lng: fr_FR
+    k_account_id: abcdef123456789
 ```
+
+Please note that these configuration setting are optional:
+- name *(defaults to VIN)*
+- android_lng *(defaults to fr_FR)*
+- k_account_id *(default to empty, which may cause a warning if multiple accounts are associated with the credentials)*
 
 ## Converting attributes to sensors
 Template sensors can be added to your configuration.yaml to display the attributes as sensors.
