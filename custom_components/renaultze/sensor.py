@@ -125,7 +125,8 @@ class RenaultZESensor(Entity):
 
     def process_battery_response(self, jsonresult):
         """Update new state data for the sensor."""
-        self._state = jsonresult['batteryLevel']
+        if 'batteryLevel' in jsonresult:
+            self._state = jsonresult.get('batteryLevel')
 
         if 'chargingStatus' in jsonresult:
             self._attrs[ATTR_CHARGING] = jsonresult['chargingStatus'] > 0
