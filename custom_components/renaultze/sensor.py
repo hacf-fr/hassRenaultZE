@@ -127,16 +127,16 @@ class RenaultZESensor(Entity):
         """Update new state data for the sensor."""
         self._state = jsonresult['batteryLevel']
 
-        if 'chargeStatus' in jsonresult:
-            self._attrs[ATTR_CHARGING] = jsonresult['chargeStatus'] > 0
-        if 'lastUpdateTime' in jsonresult:
-            self._attrs[ATTR_LAST_UPDATE] = jsonresult['lastUpdateTime']
+        if 'chargingStatus' in jsonresult:
+            self._attrs[ATTR_CHARGING] = jsonresult['chargingStatus'] > 0
+        if 'timestamp' in jsonresult:
+            self._attrs[ATTR_LAST_UPDATE] = jsonresult['timestamp']
         if 'plugStatus' in jsonresult:
             self._attrs[ATTR_PLUGGED] = jsonresult['plugStatus'] > 0
         if 'batteryTemperature' in jsonresult:
             self._attrs[ATTR_BATTERY_TEMPERATURE] = jsonresult['batteryTemperature']
-        if 'rangeHvacOff' in jsonresult:
-            self._attrs[ATTR_REMAINING_RANGE] = jsonresult['rangeHvacOff']
+        if 'batteryAutonomy' in jsonresult:
+            self._attrs[ATTR_REMAINING_RANGE] = jsonresult['batteryAutonomy']
 
     def process_mileage_response(self, jsonresult):
         """Update new state data for the sensor."""
