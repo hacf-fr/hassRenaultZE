@@ -160,7 +160,7 @@ class RenaultZESensor(Entity):
         if 'batteryAutonomy' in jsonresult:
             self._attrs[ATTR_REMAINING_RANGE] = jsonresult['batteryAutonomy']
         if 'chargingInstantaneousPower' in jsonresult:
-            self._attrs[ATTR_CHARGING_POWER] = jsonresult['chargingInstantaneousPower']
+            self._attrs[ATTR_CHARGING_POWER] = jsonresult['chargingInstantaneousPower'] / 1000
         if 'chargingRemainingTime' in jsonresult:
             self._attrs[ATTR_CHARGING_REMAINING_TIME] = jsonresult['chargingRemainingTime']
 
