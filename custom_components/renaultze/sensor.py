@@ -162,8 +162,12 @@ class RenaultZESensor(Entity):
             self._attrs[ATTR_REMAINING_RANGE] = jsonresult['batteryAutonomy']
         if 'chargingInstantaneousPower' in jsonresult:
             self._attrs[ATTR_CHARGING_POWER] = jsonresult['chargingInstantaneousPower'] / 1000
+        else:
+            self._attrs[ATTR_CHARGING_POWER] = 0
         if 'chargingRemainingTime' in jsonresult:
             self._attrs[ATTR_CHARGING_REMAINING_TIME] = jsonresult['chargingRemainingTime']
+        else:
+            self._attrs[ATTR_CHARGING_REMAINING_TIME] = None
 
     def process_mileage_response(self, jsonresult):
         """Update new state data for the sensor."""
