@@ -33,6 +33,7 @@ ATTR_BATTERY_AVAILABLE_ENERGY = 'battery_available_energy'
 ATTR_MILEAGE = 'mileage'
 ATTR_HVAC_STATUS = 'hvac_status'
 ATTR_OUTSIDE_TEMPERATURE = 'outside_temperature'
+ATTR_CHARGE_MODE = 'charge_mode'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
@@ -176,6 +177,10 @@ class RenaultZESensor(Entity):
         if 'externalTemperature' in jsonresult:
             self._attrs[ATTR_OUTSIDE_TEMPERATURE] = jsonresult['externalTemperature']
 
+    def process_chargemode_response(self, jsonresult):
+        """Update new state data for the sensor."""
+        self._attrs[ATTR_CHARGE_MODE] = jsonresult.name
+
     def update(self):
         """Fetch new state data for the sensor.
 
@@ -202,6 +207,13 @@ class RenaultZESensor(Entity):
             self.process_hvac_response(jsonresult)
         except Exception as e:
             _LOGGER.warning("HVAC update failed: %s" % traceback.format_exc())
+
+        try:
+            jsonresult =  self._vehicle.charge_mode()
+            _LOGGER.debug("Charge mode update result: %s" % jsonresult)
+            self.process_chargemode_response(jsonresult)
+        except Exception as e:
+            _LOGGER.warning("Charge mode update failed: %s" % traceback.format_exc())
 
 class RenaultZEError(Exception):
     pass
