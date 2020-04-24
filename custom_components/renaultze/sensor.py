@@ -7,7 +7,7 @@ import json
 import aiohttp
 import traceback
 from datetime import datetime, timedelta
-from pyze.api import Gigya, Kamereon, Vehicle, CredentialStore
+from pyze.api import Gigya, Kamereon, Vehicle, CredentialStore, ChargeState, PlugState
 
 import voluptuous as vol
 
@@ -20,12 +20,19 @@ from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_NAME
 _LOGGER = logging.getLogger(__name__)
 
 ATTR_CHARGING = 'charging'
+ATTR_CHARGE_STATUS = 'charge_status'
 ATTR_PLUGGED = 'plugged'
+ATTR_PLUG_STATUS = 'plug_status'
 ATTR_CHARGE_LEVEL = 'charge_level'
+ATTR_CHARGING_POWER = 'charging_power'
+ATTR_CHARGING_REMAINING_TIME = 'charging_remaining_time'
 ATTR_REMAINING_RANGE = 'remaining_range'
 ATTR_LAST_UPDATE = 'last_update'
 ATTR_BATTERY_TEMPERATURE = 'battery_temperature'
+ATTR_BATTERY_AVAILABLE_ENERGY = 'battery_available_energy'
 ATTR_MILEAGE = 'mileage'
+ATTR_HVAC_STATUS = 'hvac_status'
+ATTR_OUTSIDE_TEMPERATURE = 'outside_temperature'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
@@ -127,22 +134,47 @@ class RenaultZESensor(Entity):
         """Update new state data for the sensor."""
         if 'batteryLevel' in jsonresult:
             self._state = jsonresult.get('batteryLevel')
-
+            
+        if 'batteryAvailableEnergy' in jsonresult:
+            self._attrs[ATTR_BATTERY_AVAILABLE_ENERGY] = jsonresult['batteryAvailableEnergy'] > 0
         if 'chargingStatus' in jsonresult:
             self._attrs[ATTR_CHARGING] = jsonresult['chargingStatus'] > 0
+            
+            try:
+                charge_state = ChargeState(jsonresult['chargingStatus'])
+            except ValueError:
+                charge_state = ChargeState.NOT_AVAILABLE
+            self._attrs[ATTR_CHARGE_STATUS] = charge_state.name
         if 'timestamp' in jsonresult:
             self._attrs[ATTR_LAST_UPDATE] = jsonresult['timestamp']
         if 'plugStatus' in jsonresult:
             self._attrs[ATTR_PLUGGED] = jsonresult['plugStatus'] > 0
+            
+            try:
+                plug_state = PlugState(jsonresult['plugStatus'])
+            except ValueError:
+                plug_state = PlugState.NOT_AVAILABLE
+            self._attrs[ATTR_PLUG_STATUS] = plug_state.name
         if 'batteryTemperature' in jsonresult:
             self._attrs[ATTR_BATTERY_TEMPERATURE] = jsonresult['batteryTemperature']
         if 'batteryAutonomy' in jsonresult:
             self._attrs[ATTR_REMAINING_RANGE] = jsonresult['batteryAutonomy']
+        if 'chargingInstantaneousPower' in jsonresult:
+            self._attrs[ATTR_CHARGING_POWER] = jsonresult['chargingInstantaneousPower'] / 1000
+        if 'chargingRemainingTime' in jsonresult:
+            self._attrs[ATTR_CHARGING_REMAINING_TIME] = jsonresult['chargingRemainingTime']
 
     def process_mileage_response(self, jsonresult):
         """Update new state data for the sensor."""
         if 'totalMileage' in jsonresult:
             self._attrs[ATTR_MILEAGE] = jsonresult['totalMileage']
+            
+    def process_hvac_response(self, jsonresult):
+        """Update new state data for the sensor."""
+        if 'hvacStatus' in jsonresult:
+            self._attrs[ATTR_HVAC_STATUS] = jsonresult['hvacStatus']
+        if 'externalTemperature' in jsonresult:
+            self._attrs[ATTR_OUTSIDE_TEMPERATURE] = jsonresult['externalTemperature']
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -163,6 +195,13 @@ class RenaultZESensor(Entity):
             self.process_mileage_response(jsonresult)
         except Exception as e:
             _LOGGER.warning("Mileage update failed: %s" % traceback.format_exc())
+            
+        try:
+            jsonresult =  self._vehicle.hvac_status()
+            _LOGGER.debug("HVAC update result: %s" % jsonresult)
+            self.process_hvac_response(jsonresult)
+        except Exception as e:
+            _LOGGER.warning("HVAC update failed: %s" % traceback.format_exc())
 
 class RenaultZEError(Exception):
     pass
