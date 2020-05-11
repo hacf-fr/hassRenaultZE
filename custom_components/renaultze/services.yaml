@@ -33,4 +33,4 @@ charge_set_mode:
       example: "sensor.myzoe"
     charge_mode:
       description: Charge mode to apply.
-      example: "always_charging  or schedule_mode"
+      example: "always_charging or schedule_mode"
