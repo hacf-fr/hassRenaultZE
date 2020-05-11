@@ -25,6 +25,7 @@ To install the component, you will need to copy the three files to you local con
  | | | - __init__.py
  | | | - manifest.json
  | | | - sensor.py
+ | | | - services.yaml
 ```
 
 In your configuration.yaml, you will need to add a sensor:
