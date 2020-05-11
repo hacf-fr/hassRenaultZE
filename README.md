@@ -84,5 +84,5 @@ If you are having issues with the component, please enable debug logging in your
 logger:
   default: warn
   logs:
-    custom_components.sensor.renaultze: debug
+    custom_components.renaultze.sensor: debug
 ```

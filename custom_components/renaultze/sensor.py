@@ -49,7 +49,6 @@ SERVICE_AC_START = "ac_start"
 SERVICE_AC_CANCEL = "ac_cancel"
 SERVICE_CHARGE_START = "charge_start"
 SERVICE_CHARGE_SET_MODE = "charge_set_mode"
-SERVICE_CHARGE_SET_SCHEDULES = "charge_set_schedules"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_USERNAME): cv.string,
@@ -75,7 +74,7 @@ async def async_setup_platform(hass, config, async_add_entities,
     cred = CredentialStore()
     cred.clear()
 
-    url = 'https://renault-wrd-prod-1-euw1-myrapp-one.s3-eu-west-1.amazonaws.com/configuration/android/config_%s.json' % config.get(CONF_ANDROID_LNG)
+    url = 'https://renault-wrd-prod-1-euw1-myrapp-one.s3-eu-west-1.amazonaws.com/configuration/android/config_{0}.json'.format(config.get(CONF_ANDROID_LNG))
     async with aiohttp.ClientSession(
             ) as session:
         async with session.get(url) as response:
@@ -135,22 +134,13 @@ async def async_setup_platform(hass, config, async_add_entities,
         },
         "charge_set_mode",
     )
-    platform.async_register_entity_service(
-        SERVICE_CHARGE_SET_SCHEDULES,
-        {
-            vol.Optional(ATTR_WHEN): cv.datetime,
-            vol.Optional(ATTR_TEMPERATURE): cv.positive_int,
-        },
-        "charge_set_schedules",
-    )
-
 
 class RenaultZESensor(Entity):
     """Representation of a Sensor."""
 
     def __init__(self, vehicle, name):
         """Initialize the sensor."""
-        _LOGGER.debug("Initialising RenaultZESensor %s" % name)
+        _LOGGER.debug("Initialising RenaultZESensor {0}".format(name))
         self._state = None
         self._vehicle = vehicle
         self._name = name
@@ -239,46 +229,63 @@ class RenaultZESensor(Entity):
         # Run standard update
         try:
             jsonresult = self._vehicle.battery_status()
-            _LOGGER.debug("Battery update result: %s" % jsonresult)
+            _LOGGER.debug("Battery update result: {0}".format(jsonresult))
             self.process_battery_response(jsonresult)
         except Exception as e:
-            _LOGGER.warning("Battery update failed: %s" % traceback.format_exc())
+            _LOGGER.warning("Battery update failed: {0}".format(traceback.format_exc()))
 
         try:
             jsonresult =  self._vehicle.mileage()
-            _LOGGER.debug("Mileage update result: %s" % jsonresult)
+            _LOGGER.debug("Mileage update result: {0}".format(jsonresult))
             self.process_mileage_response(jsonresult)
         except Exception as e:
-            _LOGGER.warning("Mileage update failed: %s" % traceback.format_exc())
+            _LOGGER.warning("Mileage update failed: {0}".format(traceback.format_exc()))
             
         try:
             jsonresult =  self._vehicle.hvac_status()
-            _LOGGER.debug("HVAC update result: %s" % jsonresult)
+            _LOGGER.debug("HVAC update result: {0}".format(jsonresult))
             self.process_hvac_response(jsonresult)
         except Exception as e:
-            _LOGGER.warning("HVAC update failed: %s" % traceback.format_exc())
+            _LOGGER.warning("HVAC update failed: {0}".format(traceback.format_exc()))
 
         try:
             jsonresult =  self._vehicle.charge_mode()
-            _LOGGER.debug("Charge mode update result: %s" % jsonresult)
+            _LOGGER.debug("Charge mode update result: {0}".format(jsonresult))
             self.process_chargemode_response(jsonresult)
         except Exception as e:
-            _LOGGER.warning("Charge mode update failed: %s" % traceback.format_exc())
+            _LOGGER.warning("Charge mode update failed: {0}".format(traceback.format_exc()))
 
     def ac_start(self, when=None, temperature=21):
-        self._vehicle.ac_start(when, temperature)
+        try:
+            _LOGGER.debug("A/C start attempt: {0} / {1}".format(when, temperature))
+            jsonresult = self._vehicle.ac_start(when, temperature)
+            _LOGGER.info("A/C start result: {0}".format(jsonresult))
+        except Exception as e:
+            _LOGGER.warning("A/C start failed: {0}".format(traceback.format_exc()))
 
     def ac_cancel(self):
-        self._vehicle.cancel_ac()
-
-    def charge_set_schedules(self, schedules):
-        self._vehicle.set_charge_schedules(schedules)
+        try:
+            _LOGGER.debug("A/C cancel attempt.")
+            jsonresult = self._vehicle.cancel_ac()
+            _LOGGER.info("A/C cancel result: {0}".format(jsonresult))
+        except Exception as e:
+            _LOGGER.warning("A/C cancel failed: {0}".format(traceback.format_exc()))
 
     def charge_set_mode(self, charge_mode):
-        self._vehicle.set_charge_mode(charge_mode)
+        try:
+            _LOGGER.debug("Charge set mode attempt: {0}".format(charge_mode))
+            jsonresult = self._vehicle.set_charge_mode(charge_mode)
+            _LOGGER.info("Charge set mode result: {0}".format(jsonresult))
+        except Exception as e:
+            _LOGGER.warning("Charge set mode failed: {0}".format(traceback.format_exc()))
 
     def charge_start(self):
-        self._vehicle.charge_start()
+        try:
+            _LOGGER.debug("Charge start attempt.")
+            jsonresult = self._vehicle.charge_start()
+            _LOGGER.info("Charge start result: {0}".format(jsonresult))
+        except Exception as e:
+            _LOGGER.warning("Charge start failed: {0}".format(traceback.format_exc()))
 
 class RenaultZEError(Exception):
     pass
