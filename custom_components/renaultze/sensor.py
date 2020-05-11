@@ -7,15 +7,17 @@ import json
 import aiohttp
 import traceback
 from datetime import datetime, timedelta
-from pyze.api import Gigya, Kamereon, Vehicle, CredentialStore, ChargeState, PlugState
+from pyze.api import Gigya, Kamereon, Vehicle, CredentialStore, ChargeMode, ChargeState, PlugState
 
 import voluptuous as vol
 
 from homeassistant.helpers.entity import Entity
 
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import config_validation as cv, entity_platform, service
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_NAME
+
+from . import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,12 +36,20 @@ ATTR_MILEAGE = 'mileage'
 ATTR_HVAC_STATUS = 'hvac_status'
 ATTR_OUTSIDE_TEMPERATURE = 'outside_temperature'
 ATTR_CHARGE_MODE = 'charge_mode'
+ATTR_WHEN = 'when'
+ATTR_TEMPERATURE = 'temperature'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
 CONF_K_ACCOUNTID = 'k_account_id'
 
 SCAN_INTERVAL = timedelta(seconds=60)
+
+SERVICE_AC_START = "ac_start"
+SERVICE_AC_CANCEL = "ac_cancel"
+SERVICE_CHARGE_START = "charge_start"
+SERVICE_CHARGE_SET_MODE = "charge_set_mode"
+SERVICE_CHARGE_SET_SCHEDULES = "charge_set_schedules"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_USERNAME): cv.string,
@@ -97,6 +107,42 @@ async def async_setup_platform(hass, config, async_add_entities,
                         )
         ]
     async_add_entities(devices)
+    
+    platform = entity_platform.current_platform.get()
+
+    platform.async_register_entity_service(
+        SERVICE_AC_START,
+        {
+            vol.Optional(ATTR_WHEN): cv.datetime,
+            vol.Optional(ATTR_TEMPERATURE): cv.positive_int,
+        },
+        "ac_start",
+    )
+    platform.async_register_entity_service(
+        SERVICE_AC_CANCEL,
+        {},
+        "ac_cancel",
+    )
+    platform.async_register_entity_service(
+        SERVICE_CHARGE_START,
+        {},
+        "charge_start",
+    )
+    platform.async_register_entity_service(
+        SERVICE_CHARGE_SET_MODE,
+        {
+            vol.Required(ATTR_CHARGE_MODE): cv.enum(ChargeMode),
+        },
+        "charge_set_mode",
+    )
+    platform.async_register_entity_service(
+        SERVICE_CHARGE_SET_SCHEDULES,
+        {
+            vol.Optional(ATTR_WHEN): cv.datetime,
+            vol.Optional(ATTR_TEMPERATURE): cv.positive_int,
+        },
+        "charge_set_schedules",
+    )
 
 
 class RenaultZESensor(Entity):
@@ -218,6 +264,21 @@ class RenaultZESensor(Entity):
             self.process_chargemode_response(jsonresult)
         except Exception as e:
             _LOGGER.warning("Charge mode update failed: %s" % traceback.format_exc())
+
+    def ac_start(self, when=None, temperature=21):
+        self._vehicle.ac_start(when, temperature)
+
+    def ac_cancel(self):
+        self._vehicle.cancel_ac()
+
+    def charge_set_schedules(self, schedules):
+        self._vehicle.set_charge_schedules(schedules)
+
+    def charge_set_mode(self, charge_mode):
+        self._vehicle.set_charge_mode(charge_mode)
+
+    def charge_start(self):
+        self._vehicle.charge_start()
 
 class RenaultZEError(Exception):
     pass
