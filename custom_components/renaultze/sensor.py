@@ -6,8 +6,10 @@ import time
 import json
 import aiohttp
 import traceback
+import re
 from datetime import datetime, timedelta
 from pyze.api import Gigya, Kamereon, Vehicle, CredentialStore, ChargeMode, ChargeState, PlugState
+from pyze.api.schedule import DAYS, ScheduledCharge
 
 import voluptuous as vol
 
@@ -38,6 +40,7 @@ ATTR_OUTSIDE_TEMPERATURE = 'outside_temperature'
 ATTR_CHARGE_MODE = 'charge_mode'
 ATTR_WHEN = 'when'
 ATTR_TEMPERATURE = 'temperature'
+ATTR_SCHEDULES = 'schedules'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
@@ -49,6 +52,7 @@ SERVICE_AC_START = "ac_start"
 SERVICE_AC_CANCEL = "ac_cancel"
 SERVICE_CHARGE_START = "charge_start"
 SERVICE_CHARGE_SET_MODE = "charge_set_mode"
+SERVICE_CHARGE_SET_SCHEDULES = "charge_set_schedules"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_USERNAME): cv.string,
@@ -133,6 +137,13 @@ async def async_setup_platform(hass, config, async_add_entities,
             vol.Required(ATTR_CHARGE_MODE): cv.enum(ChargeMode),
         },
         "charge_set_mode",
+    )
+    platform.async_register_entity_service(
+        SERVICE_CHARGE_SET_SCHEDULES,
+        {
+            vol.Required(ATTR_SCHEDULES): dict,
+        },
+        "charge_set_schedules",
     )
 
 class RenaultZESensor(Entity):
@@ -286,6 +297,73 @@ class RenaultZESensor(Entity):
             _LOGGER.info("Charge start result: {0}".format(jsonresult))
         except Exception as e:
             _LOGGER.warning("Charge start failed: {0}".format(traceback.format_exc()))
+
+    def charge_set_schedules(self, schedules):
+        try:
+            _LOGGER.debug("Charge set schedules attempt: {0}.".format(schedules))
+            charge_schedules = self._vehicle.charge_schedules()
+
+            edit_schedule(charge_schedules, self._vehicle, schedules)
+
+            jsonresult = self._vehicle.set_charge_schedules(charge_schedules)
+            _LOGGER.info("Charge set schedules result: {0}".format(jsonresult))
+            _LOGGER.info('It may take some time before these changes are reflected in your vehicle.')
+        except Exception as e:
+            _LOGGER.warning("Charge set schedules failed: {0}".format(traceback.format_exc()))
+
+
+def edit_schedule(schedules, vehicle, parsed_args):
+    if hasattr(parsed_args, 'id'):
+        schd_id = parsed_args['id']
+    else:
+        schd_id = 1
+
+    schedule = schedules[schd_id]
+
+    for day in DAYS:
+        if hasattr(parsed_args, day):
+            day_value = getattr(parsed_args, day)
+
+            if day_value:
+                start_time, duration = parse_day_value(day_value)
+
+                if not parsed_args.utc:
+                    start_time = remove_offset(start_time)
+
+                schedule[day] = ScheduledCharge(start_time, duration)
+
+
+DAY_VALUE_REGEX = re.compile('(?P<start_time>[0-2][0-9][0-5][05]),(?P<duration>[0-9]+[05])')
+
+
+def parse_day_value(raw):
+    match = DAY_VALUE_REGEX.match(raw)
+    if not match:
+        raise RuntimeError('Invalid specification for charge schedule: `{}`. Should be of the form HHMM,DURATION'.format(raw))
+
+    start_time = match.group('start_time')
+    formatted_start_time = 'T{}:{}Z'.format(
+        start_time[:2],
+        start_time[2:]
+    )
+    return [formatted_start_time, int(match.group('duration'))]
+
+
+def timezone_offset():
+    offset = get_localzone().utcoffset(datetime.now()).total_seconds() / 60
+    return offset / 60, offset % 60
+
+
+def remove_offset(raw):
+    offset_hours, offset_minutes = timezone_offset()
+    raw_hours = int(raw[1:3])
+    raw_minutes = int(raw[4:6])
+
+    return "T{:02g}:{:02g}Z".format(
+        raw_hours - offset_hours,
+        raw_minutes - offset_minutes
+    )
+
 
 class RenaultZEError(Exception):
     pass
