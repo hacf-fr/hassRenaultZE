@@ -6,16 +6,20 @@ import time
 import json
 import aiohttp
 import traceback
+import re
 from datetime import datetime, timedelta
-from pyze.api import Gigya, Kamereon, Vehicle, CredentialStore, ChargeState, PlugState
+from pyze.api import Gigya, Kamereon, Vehicle, CredentialStore, ChargeMode, ChargeState, PlugState
+from pyze.api.schedule import DAYS, ScheduledCharge
 
 import voluptuous as vol
 
 from homeassistant.helpers.entity import Entity
 
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import config_validation as cv, entity_platform, service
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_NAME
+
+from . import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,12 +38,21 @@ ATTR_MILEAGE = 'mileage'
 ATTR_HVAC_STATUS = 'hvac_status'
 ATTR_OUTSIDE_TEMPERATURE = 'outside_temperature'
 ATTR_CHARGE_MODE = 'charge_mode'
+ATTR_WHEN = 'when'
+ATTR_TEMPERATURE = 'temperature'
+ATTR_SCHEDULES = 'schedules'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
 CONF_K_ACCOUNTID = 'k_account_id'
 
 SCAN_INTERVAL = timedelta(seconds=60)
+
+SERVICE_AC_START = "ac_start"
+SERVICE_AC_CANCEL = "ac_cancel"
+SERVICE_CHARGE_START = "charge_start"
+SERVICE_CHARGE_SET_MODE = "charge_set_mode"
+SERVICE_CHARGE_SET_SCHEDULES = "charge_set_schedules"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_USERNAME): cv.string,
@@ -65,7 +78,7 @@ async def async_setup_platform(hass, config, async_add_entities,
     cred = CredentialStore()
     cred.clear()
 
-    url = 'https://renault-wrd-prod-1-euw1-myrapp-one.s3-eu-west-1.amazonaws.com/configuration/android/config_%s.json' % config.get(CONF_ANDROID_LNG)
+    url = 'https://renault-wrd-prod-1-euw1-myrapp-one.s3-eu-west-1.amazonaws.com/configuration/android/config_{0}.json'.format(config.get(CONF_ANDROID_LNG))
     async with aiohttp.ClientSession(
             ) as session:
         async with session.get(url) as response:
@@ -97,14 +110,48 @@ async def async_setup_platform(hass, config, async_add_entities,
                         )
         ]
     async_add_entities(devices)
+    
+    platform = entity_platform.current_platform.get()
 
+    platform.async_register_entity_service(
+        SERVICE_AC_START,
+        {
+            vol.Optional(ATTR_WHEN): cv.datetime,
+            vol.Optional(ATTR_TEMPERATURE): cv.positive_int,
+        },
+        "ac_start",
+    )
+    platform.async_register_entity_service(
+        SERVICE_AC_CANCEL,
+        {},
+        "ac_cancel",
+    )
+    platform.async_register_entity_service(
+        SERVICE_CHARGE_START,
+        {},
+        "charge_start",
+    )
+    platform.async_register_entity_service(
+        SERVICE_CHARGE_SET_MODE,
+        {
+            vol.Required(ATTR_CHARGE_MODE): cv.enum(ChargeMode),
+        },
+        "charge_set_mode",
+    )
+    platform.async_register_entity_service(
+        SERVICE_CHARGE_SET_SCHEDULES,
+        {
+            vol.Required(ATTR_SCHEDULES): dict,
+        },
+        "charge_set_schedules",
+    )
 
 class RenaultZESensor(Entity):
     """Representation of a Sensor."""
 
     def __init__(self, vehicle, name):
         """Initialize the sensor."""
-        _LOGGER.debug("Initialising RenaultZESensor %s" % name)
+        _LOGGER.debug("Initialising RenaultZESensor {0}".format(name))
         self._state = None
         self._vehicle = vehicle
         self._name = name
@@ -193,31 +240,130 @@ class RenaultZESensor(Entity):
         # Run standard update
         try:
             jsonresult = self._vehicle.battery_status()
-            _LOGGER.debug("Battery update result: %s" % jsonresult)
+            _LOGGER.debug("Battery update result: {0}".format(jsonresult))
             self.process_battery_response(jsonresult)
         except Exception as e:
-            _LOGGER.warning("Battery update failed: %s" % traceback.format_exc())
+            _LOGGER.warning("Battery update failed: {0}".format(traceback.format_exc()))
 
         try:
             jsonresult =  self._vehicle.mileage()
-            _LOGGER.debug("Mileage update result: %s" % jsonresult)
+            _LOGGER.debug("Mileage update result: {0}".format(jsonresult))
             self.process_mileage_response(jsonresult)
         except Exception as e:
-            _LOGGER.warning("Mileage update failed: %s" % traceback.format_exc())
+            _LOGGER.warning("Mileage update failed: {0}".format(traceback.format_exc()))
             
         try:
             jsonresult =  self._vehicle.hvac_status()
-            _LOGGER.debug("HVAC update result: %s" % jsonresult)
+            _LOGGER.debug("HVAC update result: {0}".format(jsonresult))
             self.process_hvac_response(jsonresult)
         except Exception as e:
-            _LOGGER.warning("HVAC update failed: %s" % traceback.format_exc())
+            _LOGGER.warning("HVAC update failed: {0}".format(traceback.format_exc()))
 
         try:
             jsonresult =  self._vehicle.charge_mode()
-            _LOGGER.debug("Charge mode update result: %s" % jsonresult)
+            _LOGGER.debug("Charge mode update result: {0}".format(jsonresult))
             self.process_chargemode_response(jsonresult)
         except Exception as e:
-            _LOGGER.warning("Charge mode update failed: %s" % traceback.format_exc())
+            _LOGGER.warning("Charge mode update failed: {0}".format(traceback.format_exc()))
+
+    def ac_start(self, when=None, temperature=21):
+        try:
+            _LOGGER.debug("A/C start attempt: {0} / {1}".format(when, temperature))
+            jsonresult = self._vehicle.ac_start(when, temperature)
+            _LOGGER.info("A/C start result: {0}".format(jsonresult))
+        except Exception as e:
+            _LOGGER.warning("A/C start failed: {0}".format(traceback.format_exc()))
+
+    def ac_cancel(self):
+        try:
+            _LOGGER.debug("A/C cancel attempt.")
+            jsonresult = self._vehicle.cancel_ac()
+            _LOGGER.info("A/C cancel result: {0}".format(jsonresult))
+        except Exception as e:
+            _LOGGER.warning("A/C cancel failed: {0}".format(traceback.format_exc()))
+
+    def charge_set_mode(self, charge_mode):
+        try:
+            _LOGGER.debug("Charge set mode attempt: {0}".format(charge_mode))
+            jsonresult = self._vehicle.set_charge_mode(charge_mode)
+            _LOGGER.info("Charge set mode result: {0}".format(jsonresult))
+        except Exception as e:
+            _LOGGER.warning("Charge set mode failed: {0}".format(traceback.format_exc()))
+
+    def charge_start(self):
+        try:
+            _LOGGER.debug("Charge start attempt.")
+            jsonresult = self._vehicle.charge_start()
+            _LOGGER.info("Charge start result: {0}".format(jsonresult))
+        except Exception as e:
+            _LOGGER.warning("Charge start failed: {0}".format(traceback.format_exc()))
+
+    def charge_set_schedules(self, schedules):
+        try:
+            _LOGGER.debug("Charge set schedules attempt: {0}.".format(schedules))
+            charge_schedules = self._vehicle.charge_schedules()
+
+            edit_schedule(charge_schedules, self._vehicle, schedules)
+
+            jsonresult = self._vehicle.set_charge_schedules(charge_schedules)
+            _LOGGER.info("Charge set schedules result: {0}".format(jsonresult))
+            _LOGGER.info('It may take some time before these changes are reflected in your vehicle.')
+        except Exception as e:
+            _LOGGER.warning("Charge set schedules failed: {0}".format(traceback.format_exc()))
+
+
+def edit_schedule(schedules, vehicle, parsed_args):
+    if hasattr(parsed_args, 'id'):
+        schd_id = parsed_args['id']
+    else:
+        schd_id = 1
+
+    schedule = schedules[schd_id]
+
+    for day in DAYS:
+        if hasattr(parsed_args, day):
+            day_value = getattr(parsed_args, day)
+
+            if day_value:
+                start_time, duration = parse_day_value(day_value)
+
+                if not parsed_args.utc:
+                    start_time = remove_offset(start_time)
+
+                schedule[day] = ScheduledCharge(start_time, duration)
+
+
+DAY_VALUE_REGEX = re.compile('(?P<start_time>[0-2][0-9][0-5][05]),(?P<duration>[0-9]+[05])')
+
+
+def parse_day_value(raw):
+    match = DAY_VALUE_REGEX.match(raw)
+    if not match:
+        raise RuntimeError('Invalid specification for charge schedule: `{}`. Should be of the form HHMM,DURATION'.format(raw))
+
+    start_time = match.group('start_time')
+    formatted_start_time = 'T{}:{}Z'.format(
+        start_time[:2],
+        start_time[2:]
+    )
+    return [formatted_start_time, int(match.group('duration'))]
+
+
+def timezone_offset():
+    offset = get_localzone().utcoffset(datetime.now()).total_seconds() / 60
+    return offset / 60, offset % 60
+
+
+def remove_offset(raw):
+    offset_hours, offset_minutes = timezone_offset()
+    raw_hours = int(raw[1:3])
+    raw_minutes = int(raw[4:6])
+
+    return "T{:02g}:{:02g}Z".format(
+        raw_hours - offset_hours,
+        raw_minutes - offset_minutes
+    )
+
 
 class RenaultZEError(Exception):
     pass
