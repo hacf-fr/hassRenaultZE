@@ -41,6 +41,9 @@ ATTR_CHARGE_MODE = 'charge_mode'
 ATTR_WHEN = 'when'
 ATTR_TEMPERATURE = 'temperature'
 ATTR_SCHEDULES = 'schedules'
+ATTR_LOCATION_LAT = 'location_latitude'
+ATTR_LOCATION_LON = 'location_longitude'
+ATTR_LOCATION_LAST_UPDATE = 'location_last_update'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
@@ -231,6 +234,13 @@ class RenaultZESensor(Entity):
     def process_chargemode_response(self, jsonresult):
         """Update new state data for the sensor."""
         self._attrs[ATTR_CHARGE_MODE] = jsonresult.name
+    
+    def process_location_response(self, jsonresult):
+        """Update location data for the sensor."""
+        if 'gpsLatitude' in jsonresult:
+            self._attrs[ATTR_LOCATION_LAT] = jsonresult['gpsLatitude']
+            self._attrs[ATTR_LOCATION_LON] = jsonresult['gpsLongitude']
+            self._attrs[ATTR_LOCATION_LAST_UPDATE] = jsonresult['lastUpdateTime']
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -265,6 +275,13 @@ class RenaultZESensor(Entity):
             self.process_chargemode_response(jsonresult)
         except Exception as e:
             _LOGGER.warning("Charge mode update failed: {0}".format(traceback.format_exc()))
+
+        try:
+            jsonresult =  self._vehicle.location()
+            _LOGGER.debug("Location update result: {0}".format(jsonresult))
+            self.process_location_response(jsonresult)
+        except Exception as e:
+            _LOGGER.warning("Location update failed: {0}".format(traceback.format_exc()))
 
     def ac_start(self, when=None, temperature=21):
         try:
