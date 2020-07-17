@@ -187,7 +187,7 @@ class RenaultZESensor(Entity):
             self._state = jsonresult.get('batteryLevel')
             
         if 'batteryAvailableEnergy' in jsonresult:
-            self._attrs[ATTR_BATTERY_AVAILABLE_ENERGY] = jsonresult['batteryAvailableEnergy'] > 0
+            self._attrs[ATTR_BATTERY_AVAILABLE_ENERGY] = jsonresult['batteryAvailableEnergy']
         if 'chargingStatus' in jsonresult:
             self._attrs[ATTR_CHARGING] = jsonresult['chargingStatus'] > 0
             
