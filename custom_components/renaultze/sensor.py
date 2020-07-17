@@ -233,7 +233,7 @@ class RenaultZESensor(Entity):
 
     def process_chargemode_response(self, jsonresult):
         """Update new state data for the sensor."""
-        self._attrs[ATTR_CHARGE_MODE] = jsonresult.name
+        self._attrs[ATTR_CHARGE_MODE] = jsonresult.name if hasattr(jsonresult, 'name') else jsonresult
     
     def process_location_response(self, jsonresult):
         """Update location data for the sensor."""
