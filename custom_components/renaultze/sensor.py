@@ -41,6 +41,9 @@ ATTR_CHARGE_MODE = 'charge_mode'
 ATTR_WHEN = 'when'
 ATTR_TEMPERATURE = 'temperature'
 ATTR_SCHEDULES = 'schedules'
+ATTR_LONGITUDE = 'longitude'
+ATTR_LATITUDE = 'latitude'
+ATTR_GPSUPDATE = 'gps_last_update'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
@@ -86,7 +89,7 @@ async def async_setup_platform(hass, config, async_add_entities,
             if responsetext == '':
                 responsetext = '{}'
             jsonresponse = json.loads(responsetext)
-            
+
             g_url = jsonresponse['servers']['gigyaProd']['target']
             g_key = jsonresponse['servers']['gigyaProd']['apikey']
             k_url = jsonresponse['servers']['wiredProd']['target']
@@ -232,6 +235,15 @@ class RenaultZESensor(Entity):
         """Update new state data for the sensor."""
         self._attrs[ATTR_CHARGE_MODE] = jsonresult.name
 
+    def process_location(self, jsonresult):
+        """Update new state data for the sensor."""
+        if 'gpsLatitude' in jsonresult:
+            self._attrs[ATTR_LATITUDE] = jsonresult['gpsLatitude']
+        if 'gpsLongitude' in jsonresult:
+            self._attrs[ATTR_LONGITUDE] = jsonresult['gpsLongitude']
+        if 'lastUpdateTime' in jsonresult:
+            self._attrs[ATTR_GPSUPDATE] = jsonresult['lastUpdateTime']
+
     def update(self):
         """Fetch new state data for the sensor.
 
@@ -265,6 +277,13 @@ class RenaultZESensor(Entity):
             self.process_chargemode_response(jsonresult)
         except Exception as e:
             _LOGGER.warning("Charge mode update failed: {0}".format(traceback.format_exc()))
+        try:
+            jsonresult = self._vehicle.location()
+            _LOGGER.debug("Location")
+            _LOGGER.debug(jsonresult)
+            self.process_location(jsonresult)
+        except Exception as e:
+            _LOGGER.warning("Location update failed : {0}".format(traceback.format_exc()))
 
     def ac_start(self, when=None, temperature=21):
         try:
