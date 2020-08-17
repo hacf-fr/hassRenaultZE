@@ -43,7 +43,7 @@ ATTR_TEMPERATURE = 'temperature'
 ATTR_SCHEDULES = 'schedules'
 ATTR_LONGITUDE = 'longitude'
 ATTR_LATITUDE = 'latitude'
-ATTR_GPSUPDATE = 'gps_last_update'
+ATTR_LOCATION_UPDATE = 'location_last_update'
 
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
@@ -242,7 +242,7 @@ class RenaultZESensor(Entity):
         if 'gpsLongitude' in jsonresult:
             self._attrs[ATTR_LONGITUDE] = jsonresult['gpsLongitude']
         if 'lastUpdateTime' in jsonresult:
-            self._attrs[ATTR_GPSUPDATE] = jsonresult['lastUpdateTime']
+            self._attrs[ATTR_LOCATION_UPDATE] = jsonresult['lastUpdateTime']
 
     def update(self):
         """Fetch new state data for the sensor.
