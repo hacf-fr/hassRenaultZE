@@ -11,6 +11,9 @@ The custom component will create a sensor with the battery charge level (in %), 
 - plugged: false
 - remaining_range: 151
 - battery_temperature: 14 *(the attribute appeared on MyRenault, and then disappeared - maybe linked to model?)*
+- latitude: 56 *(if model supports it)
+- longitude: 11 *(if model supports it)
+- gps_last_update: 2020-08-17T06:46:40Z *(if model supports it)
 
 A few point to note. The `remaining_range` is in Kilometres, and the `charge_level` is in %.
 
