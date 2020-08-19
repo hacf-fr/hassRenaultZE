@@ -48,6 +48,7 @@ ATTR_LOCATION_LAST_UPDATE = 'location_last_update'
 CONF_VIN = 'vin'
 CONF_ANDROID_LNG = 'android_lng'
 CONF_K_ACCOUNTID = 'k_account_id'
+CONF_USE_KWH = 'use_kwh'
 
 SCAN_INTERVAL = timedelta(seconds=60)
 
@@ -64,6 +65,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_ANDROID_LNG, default='fr_FR'): cv.string,
     vol.Optional(CONF_NAME, default=None): cv.string,
     vol.Optional(CONF_K_ACCOUNTID, default=''): cv.string,
+    vol.Optional(CONF_USE_KWH, default=False): cv.boolean,
 })
 
 
@@ -81,7 +83,7 @@ async def async_setup_platform(hass, config, async_add_entities,
     cred = CredentialStore()
     cred.clear()
 
-    url = 'https://renault-wrd-prod-1-euw1-myrapp-one.s3-eu-west-1.amazonaws.com/configuration/android/config_{0}.json'.format(config.get(CONF_ANDROID_LNG))
+   url = 'https://renault-wrd-prod-1-euw1-myrapp-one.s3-eu-west-1.amazonaws.com/configuration/android/config_{0}.json'.format(config.get(CONF_ANDROID_LNG))
     async with aiohttp.ClientSession(
             ) as session:
         async with session.get(url) as response:
@@ -109,7 +111,7 @@ async def async_setup_platform(hass, config, async_add_entities,
 
     devices = [
         RenaultZESensor(v,
-                        config.get(CONF_NAME, config.get(CONF_VIN))
+                        config.get(CONF_NAME, config.get(CONF_VIN)), config.get(CONF_USE_KWH)
                         )
         ]
     async_add_entities(devices)
@@ -152,13 +154,14 @@ async def async_setup_platform(hass, config, async_add_entities,
 class RenaultZESensor(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, vehicle, name):
+    def __init__(self, vehicle, name, use_kwh):
         """Initialize the sensor."""
         _LOGGER.debug("Initialising RenaultZESensor {0}".format(name))
         self._state = None
         self._vehicle = vehicle
         self._name = name
         self._attrs = {}
+        self._use_kwh = use_kwh
         self._lastdeepupdate = 0
 
     @property
@@ -211,7 +214,10 @@ class RenaultZESensor(Entity):
         if 'batteryAutonomy' in jsonresult:
             self._attrs[ATTR_REMAINING_RANGE] = jsonresult['batteryAutonomy']
         if 'chargingInstantaneousPower' in jsonresult:
-            self._attrs[ATTR_CHARGING_POWER] = jsonresult['chargingInstantaneousPower'] / 1000
+            if self._use_kwh:
+                self._attrs[ATTR_CHARGING_POWER] = jsonresult['chargingInstantaneousPower']
+            else: 
+                self._attrs[ATTR_CHARGING_POWER] = jsonresult['chargingInstantaneousPower'] / 1000
         else:
             self._attrs[ATTR_CHARGING_POWER] = 0
         if 'chargingRemainingTime' in jsonresult:
@@ -275,7 +281,6 @@ class RenaultZESensor(Entity):
             self.process_chargemode_response(jsonresult)
         except Exception as e:
             _LOGGER.warning("Charge mode update failed: {0}".format(traceback.format_exc()))
-
         try:
             jsonresult =  self._vehicle.location()
             _LOGGER.debug("Location update result: {0}".format(jsonresult))
