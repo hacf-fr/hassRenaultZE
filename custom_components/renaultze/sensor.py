@@ -83,7 +83,7 @@ async def async_setup_platform(hass, config, async_add_entities,
     cred = CredentialStore()
     cred.clear()
 
-   url = 'https://renault-wrd-prod-1-euw1-myrapp-one.s3-eu-west-1.amazonaws.com/configuration/android/config_{0}.json'.format(config.get(CONF_ANDROID_LNG))
+    url = 'https://renault-wrd-prod-1-euw1-myrapp-one.s3-eu-west-1.amazonaws.com/configuration/android/config_{0}.json'.format(config.get(CONF_ANDROID_LNG))
     async with aiohttp.ClientSession(
             ) as session:
         async with session.get(url) as response:
