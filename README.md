@@ -25,6 +25,7 @@ To install the component, you will need to copy the three files to you local con
  | | | - __init__.py
  | | | - manifest.json
  | | | - sensor.py
+ | | | - services.yaml
 ```
 
 In your configuration.yaml, you will need to add a sensor:
@@ -84,5 +85,5 @@ If you are having issues with the component, please enable debug logging in your
 logger:
   default: warn
   logs:
-    custom_components.sensor.renaultze: debug
+    custom_components.renaultze.sensor: debug
 ```
