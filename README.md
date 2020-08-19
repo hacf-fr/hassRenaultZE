@@ -38,12 +38,14 @@ sensor:
     vin: XXXXXXXX
     android_lng: fr_FR
     k_account_id: abcdef123456789
+    use_kwh: True
 ```
 
 Please note that these configuration setting are optional:
 - name *(defaults to VIN)*
 - android_lng *(defaults to fr_FR)*
 - k_account_id *(default to empty, which may cause a warning if multiple accounts are associated with the credentials)*
+- use_kwh *(Some new cars, etc. ZE50, report charging power in kWh instead of Wh. Set to true if your car does this)*
 
 ## Converting attributes to sensors
 Template sensors can be added to your configuration.yaml to display the attributes as sensors.
