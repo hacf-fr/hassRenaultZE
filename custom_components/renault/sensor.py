@@ -16,7 +16,7 @@ from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 from .const import DOMAIN
 from .pyzeproxy import PyzeProxy
 from .pyzevehicleproxy import PyzeVehicleProxy
-from .renaultentity import RenaultBatteryDataEntity, RenaultHVACDataEntity
+from .renaultentity import RenaultBatteryDataEntity, RenaultChargeModeDataEntity, RenaultHVACDataEntity
 
 ATTR_BATTERY_AVAILABLE_ENERGY = "battery_available_energy"
 ATTR_BATTERY_TEMPERATURE = "battery_temperature"
@@ -53,6 +53,7 @@ async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
     """Create Renault entities for single vehicle."""
     entities = []
     entities.append(RenaultBatteryLevelSensor(vehicle_proxy, "Battery Level"))
+    entities.append(RenaultChargeModeSensor(vehicle_proxy, "Charge Mode"))
     entities.append(RenaultChargeStateSensor(vehicle_proxy, "Charge State"))
     entities.append(RenaultChargingPowerSensor(vehicle_proxy, "Charging Power"))
     entities.append(
@@ -102,6 +103,18 @@ class RenaultBatteryLevelSensor(RenaultBatteryDataEntity):
         if "batteryTemperature" in data:
             attrs[ATTR_BATTERY_TEMPERATURE] = data["batteryTemperature"]
         return attrs
+
+
+class RenaultChargeModeSensor(RenaultChargeModeDataEntity):
+    """Charge Mode sensor."""
+
+    @property
+    def state(self):
+        """Return the state of this entity."""
+        data = self.coordinator.data
+        if hasattr(data, "name"):
+            return data.name
+        return data
 
 
 class RenaultChargingRemainingTimeSensor(RenaultBatteryDataEntity):

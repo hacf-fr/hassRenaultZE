@@ -50,12 +50,21 @@ class RenaultBatteryDataEntity(RenaultDataEntity):
         return attrs
 
 
+class RenaultChargeModeDataEntity(RenaultDataEntity):
+    """Implementation of a Renault entity with charge_mode coordinator."""
+
+    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
+        """Initialise entity."""
+        super().__init__(proxy, entity_type, "charge_mode")
+
+
 class RenaultHVACDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with hvac_status coordinator."""
 
     def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
         """Initialise entity."""
         super().__init__(proxy, entity_type, "hvac_status")
+
 
 class RenaultLocationDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with location coordinator."""

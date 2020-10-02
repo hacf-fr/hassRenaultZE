@@ -63,6 +63,15 @@ class PyzeVehicleProxy:
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=DEFAULT_SCAN_INTERVAL,
         )
+        self.coordinators["charge_mode"] = DataUpdateCoordinator(
+            self.hass,
+            LOGGER,
+            # Name of the data. For logging purposes.
+            name=f"{self.vin} charge_mode",
+            update_method=self.get_charge_mode,
+            # Polling interval. Will only be polled if there are subscribers.
+            update_interval=DEFAULT_SCAN_INTERVAL,
+        )
         self.coordinators["hvac_status"] = DataUpdateCoordinator(
             self.hass,
             LOGGER,
@@ -89,6 +98,9 @@ class PyzeVehicleProxy:
         """Get battery_status."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.battery_status)
 
+    async def get_charge_mode(self):
+        """Get charge_mode."""
+        return await self.hass.async_add_executor_job(self._pyze_vehicle.charge_mode)
     async def get_hvac_status(self):
         """Get hvac_status."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.hvac_status)
