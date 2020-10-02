@@ -9,6 +9,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import DOMAIN, MODEL_SUPPORTS_LOCATION
 
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=60)
+LONG_SCAN_INTERVAL = timedelta(minutes=10)
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -63,6 +65,15 @@ class PyzeVehicleProxy:
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=DEFAULT_SCAN_INTERVAL,
         )
+        self.coordinators["mileage"] = DataUpdateCoordinator(
+            self.hass,
+            LOGGER,
+            # Name of the data. For logging purposes.
+            name=f"{self.vin} mileage",
+            update_method=self.get_mileage,
+            # Polling interval. Will only be polled if there are subscribers.
+            update_interval=LONG_SCAN_INTERVAL,
+        )
         self.coordinators["charge_mode"] = DataUpdateCoordinator(
             self.hass,
             LOGGER,
@@ -101,6 +112,7 @@ class PyzeVehicleProxy:
     async def get_charge_mode(self):
         """Get charge_mode."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.charge_mode)
+
     async def get_hvac_status(self):
         """Get hvac_status."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.hvac_status)
@@ -108,3 +120,7 @@ class PyzeVehicleProxy:
     async def get_location(self):
         """Get location."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.location)
+
+    async def get_mileage(self):
+        """Get mileage."""
+        return await self.hass.async_add_executor_job(self._pyze_vehicle.mileage)

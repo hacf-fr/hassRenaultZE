@@ -81,3 +81,11 @@ class RenaultLocationDataEntity(RenaultDataEntity):
         if "lastUpdateTime" in data:
             attrs[ATTR_LAST_UPDATE] = data["lastUpdateTime"]
         return attrs
+
+
+class RenaultMileageDataEntity(RenaultDataEntity):
+    """Implementation of a Renault entity with mileage coordinator."""
+
+    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
+        """Initialise entity."""
+        super().__init__(proxy, entity_type, "mileage")

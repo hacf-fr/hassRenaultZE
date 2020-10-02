@@ -16,7 +16,7 @@ from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 from .const import DOMAIN
 from .pyzeproxy import PyzeProxy
 from .pyzevehicleproxy import PyzeVehicleProxy
-from .renaultentity import RenaultBatteryDataEntity, RenaultChargeModeDataEntity, RenaultHVACDataEntity
+from .renaultentity import RenaultBatteryDataEntity, RenaultChargeModeDataEntity, RenaultHVACDataEntity, RenaultMileageDataEntity
 
 ATTR_BATTERY_AVAILABLE_ENERGY = "battery_available_energy"
 ATTR_BATTERY_TEMPERATURE = "battery_temperature"
@@ -56,6 +56,7 @@ async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
     entities.append(RenaultChargeModeSensor(vehicle_proxy, "Charge Mode"))
     entities.append(RenaultChargeStateSensor(vehicle_proxy, "Charge State"))
     entities.append(RenaultChargingPowerSensor(vehicle_proxy, "Charging Power"))
+    entities.append(RenaultMileageSensor(vehicle_proxy, "Mileage"))
     entities.append(
         RenaultOutsideTemperatureSensor(vehicle_proxy, "Outside Temperature")
     )
@@ -210,6 +211,28 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
         if self.state == ChargeState.CHARGE_IN_PROGRESS.name:
             return "mdi:flash"
         return "mdi:flash-off"
+
+
+class RenaultMileageSensor(RenaultMileageDataEntity):
+    """Mileage sensor."""
+
+    @property
+    def state(self):
+        """Return the state of this entity."""
+        data = self.coordinator.data
+        if "totalMileage" in data:
+            mileage = data["totalMileage"]
+            if not self.hass.config.units.is_metric:
+                mileage = IMPERIAL_SYSTEM.length(mileage, METRIC_SYSTEM.length_unit)
+            return round(mileage)
+        LOGGER.debug("totalMileage not available in coordinator data %s", data)
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity."""
+        if not self.hass.config.units.is_metric:
+            return LENGTH_MILES
+        return LENGTH_KILOMETERS
 
 
 class RenaultRangeSensor(RenaultBatteryDataEntity):
