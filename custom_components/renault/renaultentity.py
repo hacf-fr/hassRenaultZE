@@ -48,3 +48,11 @@ class RenaultBatteryDataEntity(RenaultDataEntity):
         if "timestamp" in data:
             attrs[ATTR_LAST_UPDATE] = data["timestamp"]
         return attrs
+
+
+class RenaultHVACDataEntity(RenaultDataEntity):
+    """Implementation of a Renault entity with hvac_status coordinator."""
+
+    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
+        """Initialise entity."""
+        super().__init__(proxy, entity_type, "hvac_status")

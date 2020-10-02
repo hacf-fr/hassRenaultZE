@@ -23,6 +23,7 @@ class PyzeVehicleProxy:
         self._device_info = None
         self.coordinators = {}
         self.async_initialise = self._async_initialise()
+        self.hvac_target_temperature = 21
 
     @property
     def device_info(self):
@@ -30,14 +31,14 @@ class PyzeVehicleProxy:
         return self._device_info
 
     @property
-    def vin(self):
-        """Return the VIN of the vehicle."""
-        return self._vehicle_link["vin"]
-
-    @property
     def registration(self):
         """Return the registration of the vehicle."""
         return self._vehicle_link["vehicleDetails"]["registrationNumber"]
+
+    @property
+    def vin(self):
+        """Return the VIN of the vehicle."""
+        return self._vehicle_link["vin"]
 
     async def _async_initialise(self):
         """Load available sensors."""
@@ -62,9 +63,22 @@ class PyzeVehicleProxy:
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=DEFAULT_SCAN_INTERVAL,
         )
+        self.coordinators["hvac_status"] = DataUpdateCoordinator(
+            self.hass,
+            LOGGER,
+            # Name of the data. For logging purposes.
+            name=f"{self.vin} hvac_status",
+            update_method=self.get_hvac_status,
+            # Polling interval. Will only be polled if there are subscribers.
+            update_interval=DEFAULT_SCAN_INTERVAL,
+        )
         for key in self.coordinators:
             await self.coordinators[key].async_refresh()
 
     async def get_battery_status(self):
         """Get battery_status."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.battery_status)
+
+    async def get_hvac_status(self):
+        """Get hvac_status."""
+        return await self.hass.async_add_executor_job(self._pyze_vehicle.hvac_status)

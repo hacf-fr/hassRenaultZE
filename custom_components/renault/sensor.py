@@ -3,7 +3,12 @@ import logging
 
 from pyze.api import ChargeState, PlugState
 
-from homeassistant.const import DEVICE_CLASS_BATTERY, PERCENTAGE, POWER_KILO_WATT
+from homeassistant.const import (
+    DEVICE_CLASS_BATTERY,
+    PERCENTAGE,
+    POWER_KILO_WATT,
+    TEMP_CELSIUS,
+)
 from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.util.distance import LENGTH_KILOMETERS, LENGTH_MILES
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
@@ -11,7 +16,7 @@ from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 from .const import DOMAIN
 from .pyzeproxy import PyzeProxy
 from .pyzevehicleproxy import PyzeVehicleProxy
-from .renaultentity import RenaultBatteryDataEntity
+from .renaultentity import RenaultBatteryDataEntity, RenaultHVACDataEntity
 
 ATTR_BATTERY_AVAILABLE_ENERGY = "battery_available_energy"
 ATTR_BATTERY_TEMPERATURE = "battery_temperature"
@@ -50,6 +55,9 @@ async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
     entities.append(RenaultBatteryLevelSensor(vehicle_proxy, "Battery Level"))
     entities.append(RenaultChargeStateSensor(vehicle_proxy, "Charge State"))
     entities.append(RenaultChargingPowerSensor(vehicle_proxy, "Charging Power"))
+    entities.append(
+        RenaultOutsideTemperatureSensor(vehicle_proxy, "Outside Temperature")
+    )
     entities.append(RenaultPlugStateSensor(vehicle_proxy, "Plug State"))
     entities.append(RenaultRangeSensor(vehicle_proxy, "Range"))
     return entities
@@ -126,6 +134,23 @@ class RenaultChargingPowerSensor(RenaultBatteryDataEntity):
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity."""
         return POWER_KILO_WATT
+
+
+class RenaultOutsideTemperatureSensor(RenaultHVACDataEntity):
+    """HVAC Outside Temperature sensor."""
+
+    @property
+    def state(self):
+        """Return the state of this entity."""
+        data = self.coordinator.data
+        if "externalTemperature" in data:
+            return data["externalTemperature"]
+        LOGGER.debug("externalTemperature not available in coordinator data %s", data)
+
+    @property
+    def unit_of_measurement(self) -> str:
+        """Return the unit of measurement of this entity."""
+        return TEMP_CELSIUS
 
 
 class RenaultPlugStateSensor(RenaultBatteryDataEntity):
