@@ -1,0 +1,36 @@
+{
+  "config": {
+    "abort": {
+      "kamereon_no_account": "Unable to find Kamereon account."
+    },
+    "error": {
+      "preload_failed": "Unable to preload Renault keys.",
+      "invalid_api_keys": "Invalid API keys.",
+      "invalid_credentials": "Invalid credentials."
+    },
+    "step": {
+      "credentials": {
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        },
+        "title": "Set Renault credentials"
+      },
+      "kamereon": {
+        "data": {
+          "kamereon_account_id": "Kamereon account id"
+        },
+        "title": "Select Kamereon account id"
+      },
+      "user": {
+        "data": {
+          "locale": "Locale",
+          "gigya-api-key": "Gigya API Key",
+          "kamereon-api-key": "Kamereon API Key"
+        },
+        "title": "Set API keys",
+        "description": "For instructions to gather API keys, check https://github.com/jamesremuscat/pyze#obtaining-api-keys"
+      }
+    }
+  }
+}
