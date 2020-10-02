@@ -40,6 +40,8 @@ AVAILABLE_LOCALES = [
     "sv_SE",
 ]
 
+REGEX_VIN = "(?i)^VF1[\\w]{14}$"
+
 SUPPORTED_PLATFORMS = [
     "binary_sensor",
     "climate",

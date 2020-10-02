@@ -113,6 +113,12 @@ class PyzeVehicleProxy:
         """Get charge_mode."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.charge_mode)
 
+    async def get_charge_schedules(self):
+        """Get charge schedules."""
+        return await self.hass.async_add_executor_job(
+            self._pyze_vehicle.charge_schedules
+        )
+
     async def get_hvac_status(self):
         """Get hvac_status."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.hvac_status)
@@ -124,3 +130,29 @@ class PyzeVehicleProxy:
     async def get_mileage(self):
         """Get mileage."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.mileage)
+
+    async def send_ac_start(self, when=None, temperature=21):
+        """Start A/C."""
+        return await self.hass.async_add_executor_job(
+            self._pyze_vehicle.ac_start, when, temperature
+        )
+
+    async def send_cancel_ac(self):
+        """Cancel A/C."""
+        return await self.hass.async_add_executor_job(self._pyze_vehicle.cancel_ac)
+
+    async def send_set_charge_mode(self, charge_mode):
+        """Set charge mode."""
+        return await self.hass.async_add_executor_job(
+            self._pyze_vehicle.set_charge_mode, charge_mode
+        )
+
+    async def send_charge_start(self):
+        """Start charge."""
+        return await self.hass.async_add_executor_job(self._pyze_vehicle.charge_start)
+
+    async def send_set_charge_schedules(self, schedules):
+        """Set charge schedules."""
+        return await self.hass.async_add_executor_job(
+            self._pyze_vehicle.set_charge_schedules, schedules
+        )

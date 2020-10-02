@@ -3,6 +3,7 @@ import voluptuous as vol
 
 from .const import CONF_KAMEREON_ACCOUNT_ID, DOMAIN, SUPPORTED_PLATFORMS
 from .pyzeproxy import PyzeProxy
+from .services import async_setup_services, async_unload_services
 
 CONFIG_SCHEMA = vol.Schema(
     {DOMAIN: vol.Schema({}, extra=vol.ALLOW_EXTRA)}, extra=vol.ALLOW_EXTRA
@@ -33,6 +34,8 @@ async def async_setup_entry(hass, config_entry):
             hass.config_entries.async_forward_entry_setup(config_entry, component)
         )
 
+    await async_setup_services(hass)
+
     return True
 
 
@@ -47,5 +50,7 @@ async def async_unload_entry(hass, config_entry):
 
     if unload_ok:
         hass.data[DOMAIN].pop(config_entry.unique_id)
+        if not hass.data[DOMAIN]:
+            await async_unload_services(hass)
 
     return unload_ok
