@@ -39,5 +39,6 @@ AVAILABLE_LOCALES = [
 ]
 
 SUPPORTED_PLATFORMS = [
+    "binary_sensor",
     "sensor",
 ]
