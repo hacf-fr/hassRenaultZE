@@ -6,7 +6,7 @@ from pyze.api import Vehicle
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN
+from .const import DOMAIN, MODEL_SUPPORTS_LOCATION
 
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=60)
 LOGGER = logging.getLogger(__name__)
@@ -72,6 +72,16 @@ class PyzeVehicleProxy:
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=DEFAULT_SCAN_INTERVAL,
         )
+        if model_code in MODEL_SUPPORTS_LOCATION:
+            self.coordinators["location"] = DataUpdateCoordinator(
+                self.hass,
+                LOGGER,
+                # Name of the data. For logging purposes.
+                name=f"{self.vin} location",
+                update_method=self.get_location,
+                # Polling interval. Will only be polled if there are subscribers.
+                update_interval=DEFAULT_SCAN_INTERVAL,
+            )
         for key in self.coordinators:
             await self.coordinators[key].async_refresh()
 
@@ -82,3 +92,7 @@ class PyzeVehicleProxy:
     async def get_hvac_status(self):
         """Get hvac_status."""
         return await self.hass.async_add_executor_job(self._pyze_vehicle.hvac_status)
+
+    async def get_location(self):
+        """Get location."""
+        return await self.hass.async_add_executor_job(self._pyze_vehicle.location)

@@ -56,3 +56,19 @@ class RenaultHVACDataEntity(RenaultDataEntity):
     def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
         """Initialise entity."""
         super().__init__(proxy, entity_type, "hvac_status")
+
+class RenaultLocationDataEntity(RenaultDataEntity):
+    """Implementation of a Renault entity with location coordinator."""
+
+    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
+        """Initialise entity."""
+        super().__init__(proxy, entity_type, "location")
+
+    @property
+    def device_state_attributes(self):
+        """Return the device state attributes."""
+        attrs = {}
+        data = self.coordinator.data
+        if "lastUpdateTime" in data:
+            attrs[ATTR_LAST_UPDATE] = data["lastUpdateTime"]
+        return attrs

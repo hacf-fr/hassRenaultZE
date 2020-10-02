@@ -6,6 +6,8 @@ CONF_KAMEREON_APIKEY = "kamereon-api-key"
 CONF_LOCALE = "locale"
 CONF_KAMEREON_ACCOUNT_ID = "kamereon_account_id"
 
+MODEL_SUPPORTS_LOCATION = ["X102VE"]
+
 AVAILABLE_LOCALES = [
     "bg_BG",
     "cs_CZ",
@@ -41,5 +43,6 @@ AVAILABLE_LOCALES = [
 SUPPORTED_PLATFORMS = [
     "binary_sensor",
     "climate",
+    "device_tracker",
     "sensor",
 ]
