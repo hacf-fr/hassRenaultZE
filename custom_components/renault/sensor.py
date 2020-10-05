@@ -55,6 +55,7 @@ async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
     entities.append(RenaultBatteryLevelSensor(vehicle_proxy, "Battery Level"))
     entities.append(RenaultChargeModeSensor(vehicle_proxy, "Charge Mode"))
     entities.append(RenaultChargeStateSensor(vehicle_proxy, "Charge State"))
+    entities.append(RenaultChargingRemainingTimeSensor(vehicle_proxy, "Charging Remaining Time"))
     entities.append(RenaultChargingPowerSensor(vehicle_proxy, "Charging Power"))
     entities.append(RenaultMileageSensor(vehicle_proxy, "Mileage"))
     entities.append(
