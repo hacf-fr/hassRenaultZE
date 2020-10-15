@@ -33,12 +33,17 @@ class PyzeVehicleProxy:
         return self._device_info
 
     @property
-    def registration(self):
+    def registration(self) -> str:
         """Return the registration of the vehicle."""
         return self._vehicle_link["vehicleDetails"]["registrationNumber"]
 
     @property
-    def vin(self):
+    def model_code(self) -> str:
+        """Return the model code of the vehicle."""
+        return self._vehicle_link["vehicleDetails"]["model"]["code"]
+
+    @property
+    def vin(self) -> str:
         """Return the VIN of the vehicle."""
         return self._vehicle_link["vin"]
 
@@ -46,14 +51,12 @@ class PyzeVehicleProxy:
         """Load available sensors."""
         brand = self._vehicle_link["brand"]
         model_label = self._vehicle_link["vehicleDetails"]["model"]["label"]
-        registration_number = self._vehicle_link["vehicleDetails"]["registrationNumber"]
-        model_code = self._vehicle_link["vehicleDetails"]["model"]["code"]
         self._device_info = {
             "identifiers": {(DOMAIN, self.vin)},
             "manufacturer": brand.capitalize(),
             "model": model_label.capitalize(),
-            "name": registration_number,
-            "sw_version": model_code,
+            "name": self.registration,
+            "sw_version": self.model_code,
         }
 
         self.coordinators["battery"] = DataUpdateCoordinator(
@@ -92,7 +95,7 @@ class PyzeVehicleProxy:
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=DEFAULT_SCAN_INTERVAL,
         )
-        if model_code in MODEL_SUPPORTS_LOCATION:
+        if self.model_code in MODEL_SUPPORTS_LOCATION:
             self.coordinators["location"] = DataUpdateCoordinator(
                 self.hass,
                 LOGGER,
@@ -102,6 +105,8 @@ class PyzeVehicleProxy:
                 # Polling interval. Will only be polled if there are subscribers.
                 update_interval=DEFAULT_SCAN_INTERVAL,
             )
+        else:
+            LOGGER.warning("Model code %s does not support location.", self.model_code)
         for key in self.coordinators:
             await self.coordinators[key].async_refresh()
 

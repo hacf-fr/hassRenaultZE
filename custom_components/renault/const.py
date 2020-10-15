@@ -7,6 +7,7 @@ CONF_LOCALE = "locale"
 CONF_KAMEREON_ACCOUNT_ID = "kamereon_account_id"
 
 MODEL_SUPPORTS_LOCATION = ["X102VE"]
+MODEL_USES_KWH = ["X102VE"]
 
 AVAILABLE_LOCALES = [
     "bg_BG",

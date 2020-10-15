@@ -24,19 +24,16 @@ async def get_entities(hass, proxy: PyzeProxy):
     """Create Renault entities for all vehicles."""
     entities = []
     for vehicle_link in proxy.get_vehicle_links():
-        model_code = vehicle_link["vehicleDetails"]["model"]["code"]
-        if model_code in MODEL_SUPPORTS_LOCATION:
-            vehicle_proxy = await proxy.get_vehicle_proxy(vehicle_link)
-            entities.extend(await get_vehicle_entities(hass, vehicle_proxy))
-        else:
-            LOGGER.warning("Model code %s does not support location.", model_code)
+        vehicle_proxy = await proxy.get_vehicle_proxy(vehicle_link)
+        entities.extend(await get_vehicle_entities(hass, vehicle_proxy))
     return entities
 
 
 async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
     """Create Renault entities for single vehicle."""
     entities = []
-    entities.append(RenaultLocationSensor(vehicle_proxy, "Location"))
+    if "location" in vehicle_proxy.coordinators:
+        entities.append(RenaultLocationSensor(vehicle_proxy, "Location"))
     return entities
 
 

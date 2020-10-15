@@ -13,10 +13,15 @@ from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.util.distance import LENGTH_KILOMETERS, LENGTH_MILES
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
-from .const import DOMAIN
+from .const import DOMAIN, MODEL_USES_KWH
 from .pyzeproxy import PyzeProxy
 from .pyzevehicleproxy import PyzeVehicleProxy
-from .renaultentity import RenaultBatteryDataEntity, RenaultChargeModeDataEntity, RenaultHVACDataEntity, RenaultMileageDataEntity
+from .renaultentity import (
+    RenaultBatteryDataEntity,
+    RenaultChargeModeDataEntity,
+    RenaultHVACDataEntity,
+    RenaultMileageDataEntity,
+)
 
 ATTR_BATTERY_AVAILABLE_ENERGY = "battery_available_energy"
 ATTR_BATTERY_TEMPERATURE = "battery_temperature"
@@ -55,7 +60,9 @@ async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
     entities.append(RenaultBatteryLevelSensor(vehicle_proxy, "Battery Level"))
     entities.append(RenaultChargeModeSensor(vehicle_proxy, "Charge Mode"))
     entities.append(RenaultChargeStateSensor(vehicle_proxy, "Charge State"))
-    entities.append(RenaultChargingRemainingTimeSensor(vehicle_proxy, "Charging Remaining Time"))
+    entities.append(
+        RenaultChargingRemainingTimeSensor(vehicle_proxy, "Charging Remaining Time")
+    )
     entities.append(RenaultChargingPowerSensor(vehicle_proxy, "Charging Power"))
     entities.append(RenaultMileageSensor(vehicle_proxy, "Mileage"))
     entities.append(
@@ -140,7 +147,10 @@ class RenaultChargingPowerSensor(RenaultBatteryDataEntity):
         """Return the state of this entity."""
         data = self.coordinator.data
         if "chargingInstantaneousPower" in data:
-            return data["chargingInstantaneousPower"] / 1000
+            if self.proxy.model_code in MODEL_USES_KWH:
+                return data["chargingInstantaneousPower"]
+            else:
+                return data["chargingInstantaneousPower"] / 1000
         LOGGER.debug(
             "chargingInstantaneousPower not available in coordinator data %s", data
         )
