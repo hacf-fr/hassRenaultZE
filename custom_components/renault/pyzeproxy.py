@@ -88,7 +88,7 @@ class PyzeProxy:
         """Get list of vehicles."""
         return self._vehicle_links
 
-    async def get_vehicle_from_vin(self, vin: str):
+    def get_vehicle_from_vin(self, vin: str):
         """Get vehicle from VIN."""
         return self._vehicle_proxies[vin.upper()]
 
