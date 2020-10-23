@@ -2,6 +2,8 @@
 import asyncio
 import logging
 
+from copy import deepcopy
+
 from pyze.api import BasicCredentialStore, Gigya, Kamereon, Vehicle
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -81,7 +83,14 @@ class PyzeProxy:
         for account_details in await self._hass.async_add_executor_job(
             self._kamereon.get_accounts
         ):
-            accounts.append(account_details["accountId"])
+            # Need to copy self._kameron as it seems impossible to overwrite account.
+            kameron = deepcopy(self._kamereon)
+            kameron.set_account_id(account_details["accountId"])
+            vehicles = await self._hass.async_add_executor_job(kameron.get_vehicles)
+
+            # Skip the account if no vehicles found in it.
+            if len(vehicles["vehicleLinks"]) != 0:
+                accounts.append(account_details["accountId"])
         return accounts
 
     def get_vehicle_links(self):
