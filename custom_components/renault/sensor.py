@@ -14,7 +14,12 @@ from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.util.distance import LENGTH_KILOMETERS, LENGTH_MILES
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
-from .const import DOMAIN, MODEL_USES_KWH
+from .const import (
+    DOMAIN,
+    MODEL_USES_KWH,
+    DEVICE_CLASS_PLUG_STATE,
+    DEVICE_CLASS_CHARGE_STATE,
+)
 from .pyzeproxy import PyzeProxy
 from .pyzevehicleproxy import PyzeVehicleProxy
 from .renaultentity import (
@@ -223,6 +228,11 @@ class RenaultPlugStateSensor(RenaultBatteryDataEntity):
             return "mdi:power-plug"
         return "mdi:power-plug-off"
 
+    @property
+    def device_class(self):
+        """Returning sensor device class"""
+        return DEVICE_CLASS_PLUG_STATE
+
 
 class RenaultChargeStateSensor(RenaultBatteryDataEntity):
     """Charge State sensor."""
@@ -245,6 +255,11 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
         if self.state == ChargeState.CHARGE_IN_PROGRESS.name:
             return "mdi:flash"
         return "mdi:flash-off"
+
+    @property
+    def device_class(self):
+        """Returning sensor device class"""
+        return DEVICE_CLASS_CHARGE_STATE
 
 
 class RenaultMileageSensor(RenaultMileageDataEntity):
