@@ -31,19 +31,5 @@
         "description": "For instructions to gather API keys, check https://github.com/jamesremuscat/pyze#obtaining-api-keys"
       }
     }
-  },
-  "state": {
-    "_": {
-      "Not charging": "Not charging",
-      "Waiting for planned charge": "Waiting for planned charge",
-      "Charge ended": "Charge ended",
-      "Waiting for current charge": "Waiting for current charge",
-      "Energy flap opened": "Energy flap opened",
-      "Charging": "Charging",
-      "Not charging or plugged in": "Not charging or plugged in",
-      "Unplugged": "Unplugged",
-      "Plugged in": "Plugged in",
-      "Plug error": "Plug error",
-    }
   }
 }
