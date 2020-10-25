@@ -1,18 +1,18 @@
 {
     "state": {
         "renault__plug_state": {
-            "Unplugged": "Unplugged",
-            "Plugged in": "Plugged in",
-            "Plug error": "Plug error"
+            "unplugged": "Unplugged",
+            "plugged_in": "Plugged in",
+            "plug_error": "Plug error"
         },
         "renault__charge_state": {
-            "Not charging": "Not charging",
-            "Waiting for planned charge": "Waiting for planned charge",
-            "Charge ended": "Charge ended",
-            "Waiting for current charge": "Waiting for current charge",
-            "Energy flap opened": "Energy flap opened",
-            "Charging": "Charging",
-            "Not charging or plugged in": "Not charging or plugged in"
+            "not_charging": "Not charging",
+            "waiting_for_planned_charge": "Waiting for planned charge",
+            "charge_ended": "Charge ended",
+            "waiting_for_current_charge": "Waiting for current charge",
+            "energy_flap_opened": "Energy flap opened",
+            "charging": "Charging",
+            "not_charging_or_plugged_in": "Not charging or plugged in"
         }
     }
 }
