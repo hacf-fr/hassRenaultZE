@@ -218,7 +218,7 @@ class RenaultPlugStateSensor(RenaultBatteryDataEntity):
                 plug_state = PlugState(data["plugStatus"])
             except ValueError:
                 plug_state = PlugState.NOT_AVAILABLE
-            return plug_state.name
+            return plug_state.name.lower().replace(" ", "_")
         LOGGER.debug("plugStatus not available in coordinator data %s", data)
 
     @property
@@ -246,7 +246,7 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
                 charge_state = ChargeState(data["chargingStatus"])
             except ValueError:
                 charge_state = ChargeState.NOT_AVAILABLE
-            return charge_state.name
+            return charge_state.name.lower().replace(" ", "_")
         LOGGER.debug("chargingStatus not available in coordinator data %s", data)
 
     @property
