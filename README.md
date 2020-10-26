@@ -1,89 +1,79 @@
-# hassRenaultZE
-A custom component for [Home Assistant](http://home-assistant.io/) to add battery status from the MyRenault services.
+# renault
 
-This is based on work by [jamesremuscat](https://github.com/jamesremuscat/pyze)
+[![GitHub Release][releases-shield]][releases]
+[![GitHub Activity][commits-shield]][commits]
+[![License][license-shield]](LICENSE)
 
-## What's Available?
-The custom component will create a sensor with the battery charge level (in %), together with the following attributes:
+[![hacs][hacsbadge]][hacs]
+![Project Maintenance][maintenance-shield]
 
-- charging: false
-- last_update: 2019-01-07T07:33:48Z
-- plugged: false
-- remaining_range: 151
-- battery_temperature: 14 *(the attribute appeared on MyRenault, and then disappeared - maybe linked to model?)*
+[![Discord][discord-shield]][discord]
+[![Community Forum][forum-shield]][forum]
 
-A few point to note. The `remaining_range` is in Kilometres, and the `charge_level` is in %.
+_Component to integrate with [Renault][renault]._
 
-## Getting started
-Initially, you'll need to make a note of your vehicule VIN, and register with MyRenault application. You will need to add the vin, the language code for your country, the username and the password to your configuration file.
+**This component will set up the following platforms.**
 
-To install the component, you will need to copy the three files to you local configuration folder:
-```
- - .homeassistant
- | - custom_components
- | | - renaultze
- | | | - __init__.py
- | | | - manifest.json
- | | | - sensor.py
- | | | - services.yaml
-```
+Platform | Description
+-- | --
+`binary_sensor` | Show car charge and plug status as `True` or `False`.
+`climate` | Control car HVAC.
+`device_tracker` | Show car location.
+`sensor` | Show various information about the car status.
 
-In your configuration.yaml, you will need to add a sensor:
-```
-sensor:
-  - platform: renaultze
-    name: MyCar
-    username: myemail@address.com
-    password: !secret renaultze_password
-    vin: XXXXXXXX
-    android_lng: fr_FR
-    k_account_id: abcdef123456789
-```
+![example][exampleimg]
 
-Please note that these configuration setting are optional:
-- name *(defaults to VIN)*
-- android_lng *(defaults to fr_FR)*
-- k_account_id *(default to empty, which may cause a warning if multiple accounts are associated with the credentials)*
+## Installation
 
-## Converting attributes to sensors
-Template sensors can be added to your configuration.yaml to display the attributes as sensors.
-```
-sensor:
-  - platform: template
-    sensors:
-      mycar_plugged:
-        value_template: "{{ state_attr('sensor.mycar' , 'plugged') }}"
-        friendly_name: "Plugged"
-  - platform: template
-    sensors:
-      mycar_charging:
-        value_template: "{{ state_attr('sensor.mycar' , 'charging') }}"
-        friendly_name: "Charging"
-  - platform: template
-    sensors:
-      mycar_remaining_range:
-        value_template: "{{ state_attr('sensor.mycar' , 'remaining_range') }}"
-        friendly_name: "Range"
-        unit_of_measurement: "km"
-  - platform: template
-    sensors:
-      mycar_mileage:
-        value_template: "{{ state_attr('sensor.mycar' , 'mileage') }}"
-        friendly_name: "Mileage"
-        unit_of_measurement: "km"
-  - platform: template
-    sensors:
-      mycar_battery_temperature:
-        value_template: "{{ state_attr('sensor.mycar' , 'battery_temperature') }}"
-        friendly_name: "Battery temperature"
-        unit_of_measurement: "°C"
+1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
+2. If you do not have a `custom_components` directory (folder) there, you need to create it.
+3. In the `custom_components` directory (folder) create a new folder called `renault`.
+4. Download _all_ the files from the `custom_components/renault/` directory (folder) in this repository.
+5. Place the files you downloaded in the new directory (folder) you created.
+6. Restart Home Assistant
+7. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Renault"
+
+Using your HA configuration directory (folder) as a starting point you should now also have this:
+
+```text
+custom_components/renault/translations/en.json
+custom_components/renault/__init__.py
+custom_components/renault/binary_sensor.py
+custom_components/renault/climate.py
+custom_components/renault/config_flow.py
+custom_components/renault/const.py
+custom_components/renault/device_tracker.json
+custom_components/renault/manifest.json
+custom_components/renault/pyzeproxy.py
+custom_components/renault/pyzevehicleproxy.py
+custom_components/renault/renaultentity.py
+custom_components/renault/sensor.py
+custom_components/renault/services.py
+custom_components/renault/services.yaml
+custom_components/renault/strings.json
 ```
 
-## Logging
-If you are having issues with the component, please enable debug logging in your configuration.yaml, for example:
-```
-logger:
-  default: warn
-  logs:
-    custom_components.renaultze.sensor: debug
-```
+## Configuration is done in the UI
+
+<!---->
+
+## Contributions are welcome!
+
+If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
+
+***
+
+[renault]: https://github.com/epenet/hassRenaultZE
+[commits-shield]: https://img.shields.io/github/commit-activity/y/epenet/hassRenaultZE.svg?style=for-the-badge
+[commits]: https://github.com/epenet/hassRenaultZE/commits/master
+[hacs]: https://github.com/custom-components/hacs
+[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[discord]: https://discord.gg/Qa5fW2R
+[discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
+[exampleimg]: example.png
+[forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
+[forum]: https://community.home-assistant.io/
+[license-shield]: https://img.shields.io/github/license/epenet/hassRenaultZE.svg?style=for-the-badge
+[maintenance-shield]: https://img.shields.io/badge/maintainer-epenet-blue.svg?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/release/epenet/hassRenaultZE.svg?style=for-the-badge
+[releases]: https://github.com/epenet/hassRenaultZE/releases
