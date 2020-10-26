@@ -5,6 +5,7 @@ from pyze.api import ChargeState, PlugState
 
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_TEMPERATURE,
     PERCENTAGE,
     POWER_KILO_WATT,
     TEMP_CELSIUS,
@@ -24,7 +25,6 @@ from .renaultentity import (
 )
 
 ATTR_BATTERY_AVAILABLE_ENERGY = "battery_available_energy"
-ATTR_BATTERY_TEMPERATURE = "battery_temperature"
 ATTR_CHARGING_POWER = "charging_power"
 ATTR_CHARGING_REMAINING_TIME = "charging_remaining_time"
 ATTR_PLUGGED = "plugged"
@@ -70,6 +70,9 @@ async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
     )
     entities.append(RenaultPlugStateSensor(vehicle_proxy, "Plug State"))
     entities.append(RenaultRangeSensor(vehicle_proxy, "Range"))
+    entities.append(
+        RenaultBatteryTemperatureSensor(vehicle_proxy, "Battery Temperature")
+    )
     return entities
 
 
@@ -109,9 +112,29 @@ class RenaultBatteryLevelSensor(RenaultBatteryDataEntity):
         data = self.coordinator.data
         if "batteryAvailableEnergy" in data:
             attrs[ATTR_BATTERY_AVAILABLE_ENERGY] = data["batteryAvailableEnergy"]
-        if "batteryTemperature" in data:
-            attrs[ATTR_BATTERY_TEMPERATURE] = data["batteryTemperature"]
         return attrs
+
+
+class RenaultBatteryTemperatureSensor(RenaultBatteryDataEntity):
+    """Battery Temperature sensor."""
+
+    @property
+    def state(self):
+        """Return the state of this entity."""
+        data = self.coordinator.data
+        if "batteryTemperature" in data:
+            return data.get("batteryTemperature")
+        LOGGER.warning("batteryTemperature not available in coordinator data %s", data)
+
+    @property
+    def device_class(self):
+        """Return the class of this entity."""
+        return DEVICE_CLASS_TEMPERATURE
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity."""
+        return TEMP_CELSIUS
 
 
 class RenaultChargeModeSensor(RenaultChargeModeDataEntity):
