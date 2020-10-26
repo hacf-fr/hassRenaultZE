@@ -3,6 +3,7 @@
   "name": "Renault",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/renault",
+  "issue_tracker": "https://github.com/epenet/hassRenaultZE/issues",
   "requirements": ["pyze==0.6.0"],
   "codeowners": ["@epenet"]
 }
