@@ -2,8 +2,6 @@
 import asyncio
 import logging
 
-from copy import deepcopy
-
 from pyze.api import BasicCredentialStore, Gigya, Kamereon, Vehicle
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
