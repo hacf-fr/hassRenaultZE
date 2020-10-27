@@ -83,10 +83,12 @@ class PyzeProxy:
         for account_details in await self._hass.async_add_executor_job(
             self._kamereon.get_accounts
         ):
-            # Need to copy self._kameron as it seems impossible to overwrite account.
-            kameron = deepcopy(self._kamereon)
-            kameron.set_account_id(account_details["accountId"])
-            vehicles = await self._hass.async_add_executor_job(kameron.get_vehicles)
+            self._kamereon.set_account_id(account_details["accountId"])
+            vehicles = await self._hass.async_add_executor_job(
+                self._kamereon.get_vehicles
+            )
+            # get_vehicles() use cache: need to empty it between each iteration in the loop
+            self._kamereon.get_vehicles.cache_clear()
 
             # Skip the account if no vehicles found in it.
             if len(vehicles["vehicleLinks"]) != 0:
