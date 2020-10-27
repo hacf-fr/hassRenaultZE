@@ -81,7 +81,16 @@ class PyzeProxy:
         for account_details in await self._hass.async_add_executor_job(
             self._kamereon.get_accounts
         ):
-            accounts.append(account_details["accountId"])
+            self._kamereon.set_account_id(account_details["accountId"])
+            vehicles = await self._hass.async_add_executor_job(
+                self._kamereon.get_vehicles
+            )
+            # get_vehicles() use cache: need to empty it between each iteration in the loop
+            self._kamereon.get_vehicles.cache_clear()
+
+            # Skip the account if no vehicles found in it.
+            if len(vehicles["vehicleLinks"]) != 0:
+                accounts.append(account_details["accountId"])
         return accounts
 
     def get_vehicle_links(self):
