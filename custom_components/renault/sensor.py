@@ -11,6 +11,7 @@ from homeassistant.const import (
     TEMP_CELSIUS,
 )
 from homeassistant.helpers.icon import icon_for_battery_level
+from homeassistant.util import slugify
 from homeassistant.util.distance import LENGTH_KILOMETERS, LENGTH_MILES
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
@@ -218,7 +219,7 @@ class RenaultPlugStateSensor(RenaultBatteryDataEntity):
                 plug_state = PlugState(data["plugStatus"])
             except ValueError:
                 plug_state = PlugState.NOT_AVAILABLE
-            return plug_state.name.lower().replace(" ", "_")
+            return slugify(plug_state.name)
         LOGGER.debug("plugStatus not available in coordinator data %s", data)
 
     @property
@@ -246,7 +247,7 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
                 charge_state = ChargeState(data["chargingStatus"])
             except ValueError:
                 charge_state = ChargeState.NOT_AVAILABLE
-            return charge_state.name.lower().replace(" ", "_")
+            return slugify(charge_state.name)
         LOGGER.debug("chargingStatus not available in coordinator data %s", data)
 
     @property
