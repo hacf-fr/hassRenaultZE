@@ -1,7 +1,7 @@
 {
     "config": {
         "abort": {
-            "kamereon_no_account": "Aucun compte Kamereon trouvé."
+            "kamereon_no_account": "Aucun compte Kamereon trouvé"
         },
         "error": {
             "invalid_api_keys": "Clé API invalide",
