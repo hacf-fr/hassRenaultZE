@@ -6,4 +6,5 @@ logger:
     pyze: debug
     custom_components.renault: debug
 
-ptvsd:
+# Uncomment to debug
+# ptvsd:
