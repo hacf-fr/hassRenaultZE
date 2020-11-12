@@ -6,7 +6,7 @@ from pyze.api import Vehicle
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN, MODEL_SUPPORTS_LOCATION
+from .const import DOMAIN, MODEL_SUPPORTS_LOCATION, MODEL_USES_KWH
 
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=60)
 LONG_SCAN_INTERVAL = timedelta(minutes=10)
@@ -87,9 +87,10 @@ class PyzeVehicleProxy:
                 # Polling interval. Will only be polled if there are subscribers.
                 update_interval=DEFAULT_SCAN_INTERVAL,
             )
-        )
+        
         else:
             LOGGER.warning("Model code %s does not support battery information.", self.model_code)
+
         if self.model_code in MODEL_SUPPORTS_LOCATION:
             self.coordinators["location"] = DataUpdateCoordinator(
                 self.hass,
