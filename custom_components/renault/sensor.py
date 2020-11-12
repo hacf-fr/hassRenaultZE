@@ -246,7 +246,7 @@ class RenaultMileageSensor(RenaultMileageDataEntity):
         return LENGTH_KILOMETERS
 
 
-class RenaultRangeSensor(RenaultBatteryDataEntity):
+class RenaultRangeBatterySensor(RenaultBatteryDataEntity):
     """Range sensor."""
 
     @property
@@ -259,6 +259,48 @@ class RenaultRangeSensor(RenaultBatteryDataEntity):
                 autonomy = IMPERIAL_SYSTEM.length(autonomy, METRIC_SYSTEM.length_unit)
             return autonomy
         LOGGER.debug("batteryAutonomy not available in coordinator data %s", data)
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity."""
+        if not self.hass.config.units.is_metric:
+            return LENGTH_MILES
+        return LENGTH_KILOMETERS
+    
+class RenaultRangeBatterySensor(RenaultBatteryDataEntity):
+    """Range sensor."""
+
+    @property
+    def state(self):
+        """Return the state of this entity."""
+        data = self.coordinator.data
+        if "batteryAutonomy" in data:
+            autonomy = data["batteryAutonomy"]
+            if not self.hass.config.units.is_metric:
+                autonomy = IMPERIAL_SYSTEM.length(autonomy, METRIC_SYSTEM.length_unit)
+            return autonomy
+        LOGGER.debug("batteryAutonomy not available in coordinator data %s", data)
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity."""
+        if not self.hass.config.units.is_metric:
+            return LENGTH_MILES
+        return LENGTH_KILOMETERS
+ 
+class RenaultRangeFuelSensor(RenaultMileageDataEntity):
+    """Fuel Autonomy sensor."""
+
+    @property
+    def state(self):
+        """Return the state of this entity."""
+        data = self.coordinator.data
+        if "fuelAutonomy" in data:
+            mileage_fuel = data["fuelAutonomy"]
+            if not self.hass.config.units.is_metric:
+                mileage_fuel = IMPERIAL_SYSTEM.length(mileage_fuel, METRIC_SYSTEM.length_unit)
+            return round(mileage_fuel)
+        LOGGER.debug("fuelAutonomy not available in coordinator data %s", data)
 
     @property
     def unit_of_measurement(self):
