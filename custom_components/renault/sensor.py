@@ -69,7 +69,8 @@ async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
         RenaultOutsideTemperatureSensor(vehicle_proxy, "Outside Temperature")
     )
     entities.append(RenaultPlugStateSensor(vehicle_proxy, "Plug State"))
-    entities.append(RenaultRangeSensor(vehicle_proxy, "Range"))
+    entities.append(RenaultRangeBatterySensor(vehicle_proxy, "Battery Range"))
+    entities.append(RenaultRangeFuelSensor(vehicle_proxy, "Fuel Range"))
     return entities
 
 
@@ -246,27 +247,6 @@ class RenaultMileageSensor(RenaultMileageDataEntity):
         return LENGTH_KILOMETERS
 
 
-class RenaultRangeBatterySensor(RenaultBatteryDataEntity):
-    """Range sensor."""
-
-    @property
-    def state(self):
-        """Return the state of this entity."""
-        data = self.coordinator.data
-        if "batteryAutonomy" in data:
-            autonomy = data["batteryAutonomy"]
-            if not self.hass.config.units.is_metric:
-                autonomy = IMPERIAL_SYSTEM.length(autonomy, METRIC_SYSTEM.length_unit)
-            return autonomy
-        LOGGER.debug("batteryAutonomy not available in coordinator data %s", data)
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement of this entity."""
-        if not self.hass.config.units.is_metric:
-            return LENGTH_MILES
-        return LENGTH_KILOMETERS
-    
 class RenaultRangeBatterySensor(RenaultBatteryDataEntity):
     """Range sensor."""
 
