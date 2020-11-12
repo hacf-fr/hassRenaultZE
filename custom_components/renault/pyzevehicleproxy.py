@@ -59,42 +59,37 @@ class PyzeVehicleProxy:
             "sw_version": self.model_code,
         }
 
-        self.coordinators["battery"] = DataUpdateCoordinator(
-            self.hass,
-            LOGGER,
-            # Name of the data. For logging purposes.
-            name=f"{self.vin} battery",
-            update_method=self.get_battery_status,
-            # Polling interval. Will only be polled if there are subscribers.
-            update_interval=DEFAULT_SCAN_INTERVAL,
+        if self.model_code in MODEL_USES_KWH :
+            self.coordinators["battery"] = DataUpdateCoordinator(
+                self.hass,
+                LOGGER,
+                # Name of the data. For logging purposes.
+                name=f"{self.vin} battery",
+                update_method=self.get_battery_status,
+                # Polling interval. Will only be polled if there are subscribers.
+                update_interval=DEFAULT_SCAN_INTERVAL,
+            )       
+            self.coordinators["charge_mode"] = DataUpdateCoordinator(
+                self.hass,
+                LOGGER,
+                # Name of the data. For logging purposes.
+                name=f"{self.vin} charge_mode",
+                update_method=self.get_charge_mode,
+                # Polling interval. Will only be polled if there are subscribers.
+                update_interval=DEFAULT_SCAN_INTERVAL,
+            )
+            self.coordinators["hvac_status"] = DataUpdateCoordinator(
+                self.hass,
+                LOGGER,
+                # Name of the data. For logging purposes.
+                name=f"{self.vin} hvac_status",
+                update_method=self.get_hvac_status,
+                # Polling interval. Will only be polled if there are subscribers.
+                update_interval=DEFAULT_SCAN_INTERVAL,
+            )
         )
-        self.coordinators["mileage"] = DataUpdateCoordinator(
-            self.hass,
-            LOGGER,
-            # Name of the data. For logging purposes.
-            name=f"{self.vin} mileage",
-            update_method=self.get_mileage,
-            # Polling interval. Will only be polled if there are subscribers.
-            update_interval=LONG_SCAN_INTERVAL,
-        )
-        self.coordinators["charge_mode"] = DataUpdateCoordinator(
-            self.hass,
-            LOGGER,
-            # Name of the data. For logging purposes.
-            name=f"{self.vin} charge_mode",
-            update_method=self.get_charge_mode,
-            # Polling interval. Will only be polled if there are subscribers.
-            update_interval=DEFAULT_SCAN_INTERVAL,
-        )
-        self.coordinators["hvac_status"] = DataUpdateCoordinator(
-            self.hass,
-            LOGGER,
-            # Name of the data. For logging purposes.
-            name=f"{self.vin} hvac_status",
-            update_method=self.get_hvac_status,
-            # Polling interval. Will only be polled if there are subscribers.
-            update_interval=DEFAULT_SCAN_INTERVAL,
-        )
+        else:
+            LOGGER.warning("Model code %s does not support battery information.", self.model_code)
         if self.model_code in MODEL_SUPPORTS_LOCATION:
             self.coordinators["location"] = DataUpdateCoordinator(
                 self.hass,
@@ -105,6 +100,16 @@ class PyzeVehicleProxy:
                 # Polling interval. Will only be polled if there are subscribers.
                 update_interval=DEFAULT_SCAN_INTERVAL,
             )
+
+        self.coordinators["mileage"] = DataUpdateCoordinator(
+            self.hass,
+            LOGGER,
+            # Name of the data. For logging purposes.
+            name=f"{self.vin} mileage",
+            update_method=self.get_mileage,
+            # Polling interval. Will only be polled if there are subscribers.
+            update_interval=LONG_SCAN_INTERVAL,
+        )
         else:
             LOGGER.warning("Model code %s does not support location.", self.model_code)
         for key in self.coordinators:
