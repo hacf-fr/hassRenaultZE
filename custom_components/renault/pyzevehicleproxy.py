@@ -8,7 +8,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN, MODEL_SUPPORTS_LOCATION
 
-DEFAULT_SCAN_INTERVAL = timedelta(seconds=60)
+DEFAULT_SCAN_INTERVAL = timedelta(minutes=5)
 LONG_SCAN_INTERVAL = timedelta(minutes=10)
 
 LOGGER = logging.getLogger(__name__)
