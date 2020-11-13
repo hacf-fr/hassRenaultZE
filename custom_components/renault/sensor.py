@@ -5,15 +5,22 @@ from pyze.api import ChargeState, PlugState
 
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_TEMPERATURE,
     PERCENTAGE,
     POWER_KILO_WATT,
     TEMP_CELSIUS,
 )
 from homeassistant.helpers.icon import icon_for_battery_level
+from homeassistant.util import slugify
 from homeassistant.util.distance import LENGTH_KILOMETERS, LENGTH_MILES
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
-from .const import DOMAIN, MODEL_USES_KWH
+from .const import (
+    DOMAIN,
+    MODEL_USES_KWH,
+    DEVICE_CLASS_PLUG_STATE,
+    DEVICE_CLASS_CHARGE_STATE,
+)
 from .pyzeproxy import PyzeProxy
 from .pyzevehicleproxy import PyzeVehicleProxy
 from .renaultentity import (
@@ -24,7 +31,6 @@ from .renaultentity import (
 )
 
 ATTR_BATTERY_AVAILABLE_ENERGY = "battery_available_energy"
-ATTR_BATTERY_TEMPERATURE = "battery_temperature"
 ATTR_CHARGING_POWER = "charging_power"
 ATTR_CHARGING_REMAINING_TIME = "charging_remaining_time"
 ATTR_PLUGGED = "plugged"
@@ -70,6 +76,9 @@ async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
     )
     entities.append(RenaultPlugStateSensor(vehicle_proxy, "Plug State"))
     entities.append(RenaultRangeSensor(vehicle_proxy, "Range"))
+    entities.append(
+        RenaultBatteryTemperatureSensor(vehicle_proxy, "Battery Temperature")
+    )
     return entities
 
 
@@ -109,9 +118,29 @@ class RenaultBatteryLevelSensor(RenaultBatteryDataEntity):
         data = self.coordinator.data
         if "batteryAvailableEnergy" in data:
             attrs[ATTR_BATTERY_AVAILABLE_ENERGY] = data["batteryAvailableEnergy"]
-        if "batteryTemperature" in data:
-            attrs[ATTR_BATTERY_TEMPERATURE] = data["batteryTemperature"]
         return attrs
+
+
+class RenaultBatteryTemperatureSensor(RenaultBatteryDataEntity):
+    """Battery Temperature sensor."""
+
+    @property
+    def state(self):
+        """Return the state of this entity."""
+        data = self.coordinator.data
+        if "batteryTemperature" in data:
+            return data.get("batteryTemperature")
+        LOGGER.warning("batteryTemperature not available in coordinator data %s", data)
+
+    @property
+    def device_class(self):
+        """Return the class of this entity."""
+        return DEVICE_CLASS_TEMPERATURE
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity."""
+        return TEMP_CELSIUS
 
 
 class RenaultChargeModeSensor(RenaultChargeModeDataEntity):
@@ -190,7 +219,7 @@ class RenaultPlugStateSensor(RenaultBatteryDataEntity):
                 plug_state = PlugState(data["plugStatus"])
             except ValueError:
                 plug_state = PlugState.NOT_AVAILABLE
-            return plug_state.name
+            return slugify(plug_state.name)
         LOGGER.debug("plugStatus not available in coordinator data %s", data)
 
     @property
@@ -199,6 +228,11 @@ class RenaultPlugStateSensor(RenaultBatteryDataEntity):
         if self.state == PlugState.PLUGGED.name:
             return "mdi:power-plug"
         return "mdi:power-plug-off"
+
+    @property
+    def device_class(self):
+        """Returning sensor device class"""
+        return DEVICE_CLASS_PLUG_STATE
 
 
 class RenaultChargeStateSensor(RenaultBatteryDataEntity):
@@ -213,7 +247,7 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
                 charge_state = ChargeState(data["chargingStatus"])
             except ValueError:
                 charge_state = ChargeState.NOT_AVAILABLE
-            return charge_state.name
+            return slugify(charge_state.name)
         LOGGER.debug("chargingStatus not available in coordinator data %s", data)
 
     @property
@@ -222,6 +256,11 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
         if self.state == ChargeState.CHARGE_IN_PROGRESS.name:
             return "mdi:flash"
         return "mdi:flash-off"
+
+    @property
+    def device_class(self):
+        """Returning sensor device class"""
+        return DEVICE_CLASS_CHARGE_STATE
 
 
 class RenaultMileageSensor(RenaultMileageDataEntity):
