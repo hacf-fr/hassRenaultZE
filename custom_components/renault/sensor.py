@@ -11,10 +11,16 @@ from homeassistant.const import (
     TEMP_CELSIUS,
 )
 from homeassistant.helpers.icon import icon_for_battery_level
+from homeassistant.util import slugify
 from homeassistant.util.distance import LENGTH_KILOMETERS, LENGTH_MILES
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
-from .const import DOMAIN, MODEL_USES_KWH
+from .const import (
+    DOMAIN,
+    MODEL_USES_KWH,
+    DEVICE_CLASS_PLUG_STATE,
+    DEVICE_CLASS_CHARGE_STATE,
+)
 from .pyzeproxy import PyzeProxy
 from .pyzevehicleproxy import PyzeVehicleProxy
 from .renaultentity import (
@@ -213,7 +219,7 @@ class RenaultPlugStateSensor(RenaultBatteryDataEntity):
                 plug_state = PlugState(data["plugStatus"])
             except ValueError:
                 plug_state = PlugState.NOT_AVAILABLE
-            return plug_state.name
+            return slugify(plug_state.name)
         LOGGER.debug("plugStatus not available in coordinator data %s", data)
 
     @property
@@ -222,6 +228,11 @@ class RenaultPlugStateSensor(RenaultBatteryDataEntity):
         if self.state == PlugState.PLUGGED.name:
             return "mdi:power-plug"
         return "mdi:power-plug-off"
+
+    @property
+    def device_class(self):
+        """Returning sensor device class"""
+        return DEVICE_CLASS_PLUG_STATE
 
 
 class RenaultChargeStateSensor(RenaultBatteryDataEntity):
@@ -236,7 +247,7 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
                 charge_state = ChargeState(data["chargingStatus"])
             except ValueError:
                 charge_state = ChargeState.NOT_AVAILABLE
-            return charge_state.name
+            return slugify(charge_state.name)
         LOGGER.debug("chargingStatus not available in coordinator data %s", data)
 
     @property
@@ -245,6 +256,11 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
         if self.state == ChargeState.CHARGE_IN_PROGRESS.name:
             return "mdi:flash"
         return "mdi:flash-off"
+
+    @property
+    def device_class(self):
+        """Returning sensor device class"""
+        return DEVICE_CLASS_CHARGE_STATE
 
 
 class RenaultMileageSensor(RenaultMileageDataEntity):

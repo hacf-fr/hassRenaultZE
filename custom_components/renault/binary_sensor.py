@@ -1,7 +1,11 @@
 """Support for Renault sensors."""
 import logging
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import (
+    DEVICE_CLASS_PLUG,
+    DEVICE_CLASS_BATTERY_CHARGING,
+    BinarySensorEntity,
+)
 
 from .const import DOMAIN
 from .pyzeproxy import PyzeProxy
@@ -55,6 +59,11 @@ class RenaultPluggedInSensor(RenaultBatteryDataEntity, BinarySensorEntity):
             return "mdi:power-plug"
         return "mdi:power-plug-off"
 
+    @property
+    def device_class(self):
+        """Returning binary sensor device class"""
+        return DEVICE_CLASS_PLUG
+
 
 class RenaultChargingSensor(RenaultBatteryDataEntity, BinarySensorEntity):
     """Charging sensor."""
@@ -70,3 +79,8 @@ class RenaultChargingSensor(RenaultBatteryDataEntity, BinarySensorEntity):
         if self.is_on:
             return "mdi:flash"
         return "mdi:flash-off"
+
+    @property
+    def device_class(self):
+        """Returning binary sensor device class"""
+        return DEVICE_CLASS_BATTERY_CHARGING

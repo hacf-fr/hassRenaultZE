@@ -1,0 +1,35 @@
+{
+  "config": {
+    "abort": {
+      "kamereon_no_account": "Aucun compte Kamereon trouvé"
+    },
+    "error": {
+      "invalid_api_keys": "Clé API invalide",
+      "invalid_credentials": "Authentification invalide"
+    },
+    "step": {
+      "credentials": {
+        "data": {
+          "username": "Email",
+          "password": "Mot de passe"
+        },
+        "title": "Entrez vos information d'identification Renault"
+      },
+      "kamereon": {
+        "data": {
+          "kamereon_account_id": "ID du compte Kamereon"
+        },
+        "title": "Selectionez le compte Kamereon"
+      },
+      "user": {
+        "data": {
+          "locale": "Code régional",
+          "gigya-api-key": "Clé API Gigya",
+          "kamereon-api-key": "Clé API Kamereon"
+        },
+        "title": "Entrez les clés API",
+        "description": "Pour voir des instructions pour récupérer les clés API, consultez https://github.com/jamesremuscat/pyze#obtaining-api-keys"
+      }
+    }
+  }
+}
