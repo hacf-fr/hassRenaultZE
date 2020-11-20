@@ -4,7 +4,6 @@
       "kamereon_no_account": "Aucun compte Kamereon trouvé"
     },
     "error": {
-      "invalid_api_keys": "Clé API invalide",
       "invalid_credentials": "Authentification invalide"
     },
     "step": {
@@ -23,12 +22,9 @@
       },
       "user": {
         "data": {
-          "locale": "Code régional",
-          "gigya-api-key": "Clé API Gigya",
-          "kamereon-api-key": "Clé API Kamereon"
+          "locale": "Code régional"
         },
-        "title": "Entrez les clés API",
-        "description": "Pour voir des instructions pour récupérer les clés API, consultez https://github.com/jamesremuscat/pyze#obtaining-api-keys"
+        "title": "Choisissez le code régional"
       }
     }
   }
