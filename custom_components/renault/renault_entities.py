@@ -2,8 +2,15 @@
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
+from renault_api.model.kamereon import (
+    KamereonVehicleBatteryStatusData,
+    KamereonVehicleChargeModeData,
+    KamereonVehicleCockpitData,
+    KamereonVehicleHvacStatusData,
+    KamereonVehicleLocationData,
+)
 
-from .pyzeproxy import PyzeVehicleProxy
+from .renault_vehicle import RenaultVehicleProxy
 
 ATTR_LAST_UPDATE = "last_update"
 
@@ -11,7 +18,9 @@ ATTR_LAST_UPDATE = "last_update"
 class RenaultDataEntity(CoordinatorEntity, Entity):
     """Implementation of a Renault entity with a data coordinator."""
 
-    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str, coordinator_key: str):
+    def __init__(
+        self, proxy: RenaultVehicleProxy, entity_type: str, coordinator_key: str
+    ):
         """Initialise entity."""
         super().__init__(proxy.coordinators[coordinator_key])
         self.proxy = proxy
@@ -36,56 +45,74 @@ class RenaultDataEntity(CoordinatorEntity, Entity):
 class RenaultBatteryDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with battery coordinator."""
 
-    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
         """Initialise entity."""
         super().__init__(proxy, entity_type, "battery")
+
+    @property
+    def data(self) -> KamereonVehicleBatteryStatusData:
+        return self.coordinator.data
 
     @property
     def device_state_attributes(self):
         """Return the state attributes of this entity."""
         attrs = {}
-        data = self.coordinator.data
-        if "timestamp" in data:
-            attrs[ATTR_LAST_UPDATE] = data["timestamp"]
+        if "timestamp" in self.data.raw_data:
+            attrs[ATTR_LAST_UPDATE] = self.data.raw_data["timestamp"]
         return attrs
 
 
 class RenaultChargeModeDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with charge_mode coordinator."""
 
-    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
         """Initialise entity."""
         super().__init__(proxy, entity_type, "charge_mode")
+
+    @property
+    def data(self) -> KamereonVehicleChargeModeData:
+        return self.coordinator.data
 
 
 class RenaultHVACDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with hvac_status coordinator."""
 
-    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
         """Initialise entity."""
         super().__init__(proxy, entity_type, "hvac_status")
+
+    @property
+    def data(self) -> KamereonVehicleHvacStatusData:
+        return self.coordinator.data
 
 
 class RenaultLocationDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with location coordinator."""
 
-    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
         """Initialise entity."""
         super().__init__(proxy, entity_type, "location")
+
+    @property
+    def data(self) -> KamereonVehicleLocationData:
+        return self.coordinator.data
 
     @property
     def device_state_attributes(self):
         """Return the device state attributes."""
         attrs = {}
-        data = self.coordinator.data
-        if "lastUpdateTime" in data:
-            attrs[ATTR_LAST_UPDATE] = data["lastUpdateTime"]
+        if "lastUpdateTime" in self.data.raw_data:
+            attrs[ATTR_LAST_UPDATE] = self.data.raw_data["lastUpdateTime"]
         return attrs
 
 
 class RenaultMileageDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with mileage coordinator."""
 
-    def __init__(self, proxy: PyzeVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
         """Initialise entity."""
         super().__init__(proxy, entity_type, "mileage")
+
+    @property
+    def data(self) -> KamereonVehicleCockpitData:
+        return self.coordinator.data

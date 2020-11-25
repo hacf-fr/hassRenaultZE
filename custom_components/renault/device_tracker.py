@@ -1,37 +1,40 @@
 """Device tracker for Renault vehicles."""
 import logging
+from typing import List
 
 from homeassistant.components.device_tracker import SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 
-from .const import DOMAIN, MODEL_SUPPORTS_LOCATION
-from .pyzeproxy import PyzeProxy
-from .pyzevehicleproxy import PyzeVehicleProxy
-from .renaultentity import RenaultLocationDataEntity
+from .const import DOMAIN
+from .renault_hub import RenaultHub
+from .renault_vehicle import RenaultVehicleProxy
+from .renault_entities import RenaultDataEntity, RenaultLocationDataEntity
 
 LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Renault entities from config entry."""
-    proxy = hass.data[DOMAIN][config_entry.unique_id]
-    entities = await get_entities(hass, proxy)
+    proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
+    entities: List[RenaultDataEntity] = await get_entities(proxy)
     proxy.entities.extend(entities)
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
-async def get_entities(hass, proxy: PyzeProxy):
+async def get_entities(proxy: RenaultHub) -> List[RenaultDataEntity]:
     """Create Renault entities for all vehicles."""
-    entities = []
+    entities: List[RenaultDataEntity] = []
     for vehicle_link in proxy.get_vehicle_links():
-        vehicle_proxy = await proxy.get_vehicle_proxy(vehicle_link)
-        entities.extend(await get_vehicle_entities(hass, vehicle_proxy))
+        vehicle_proxy = await proxy.get_vehicle(vehicle_link)
+        entities.extend(await get_vehicle_entities(vehicle_proxy))
     return entities
 
 
-async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
+async def get_vehicle_entities(
+    vehicle_proxy: RenaultVehicleProxy,
+) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
-    entities = []
+    entities: List[RenaultDataEntity] = []
     if "location" in vehicle_proxy.coordinators:
         entities.append(RenaultLocationSensor(vehicle_proxy, "Location"))
     return entities
@@ -48,18 +51,14 @@ class RenaultLocationSensor(RenaultLocationDataEntity, TrackerEntity):
     @property
     def latitude(self) -> float:
         """Return latitude value of the device."""
-        data = self.coordinator.data
-        if "gpsLatitude" in data:
-            return data["gpsLatitude"]
-        LOGGER.warning("gpsLatitude not available in coordinator data %s", data)
+        # return self.data.gpsLatitude
+        return self.data.gpsLatitude
 
     @property
     def longitude(self) -> float:
         """Return longitude value of the device."""
-        data = self.coordinator.data
-        if "gpsLongitude" in data:
-            return data["gpsLongitude"]
-        LOGGER.warning("gpsLongitude not available in coordinator data %s", data)
+        # return self.data.gpsLongitude
+        return self.data.gpsLongitude
 
     @property
     def source_type(self):

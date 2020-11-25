@@ -1,7 +1,8 @@
 """Support for Renault sensors."""
 import logging
+from typing import List
 
-from pyze.api import ChargeState, PlugState
+from renault_api.model.kamereon import ChargeState, PlugState
 
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
@@ -21,11 +22,12 @@ from .const import (
     DEVICE_CLASS_PLUG_STATE,
     DEVICE_CLASS_CHARGE_STATE,
 )
-from .pyzeproxy import PyzeProxy
-from .pyzevehicleproxy import PyzeVehicleProxy
-from .renaultentity import (
+from .renault_hub import RenaultHub
+from .renault_vehicle import RenaultVehicleProxy
+from .renault_entities import (
     RenaultBatteryDataEntity,
     RenaultChargeModeDataEntity,
+    RenaultDataEntity,
     RenaultHVACDataEntity,
     RenaultMileageDataEntity,
 )
@@ -45,22 +47,24 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Renault entities from config entry."""
-    proxy = hass.data[DOMAIN][config_entry.unique_id]
+    proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
     entities = await get_entities(hass, proxy)
     proxy.entities.extend(entities)
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
-async def get_entities(hass, proxy: PyzeProxy):
+async def get_entities(hass, proxy: RenaultHub) -> List[RenaultDataEntity]:
     """Create Renault entities for all vehicles."""
     entities = []
     for vehicle_link in proxy.get_vehicle_links():
-        vehicle_proxy = await proxy.get_vehicle_proxy(vehicle_link)
+        vehicle_proxy = await proxy.get_vehicle(vehicle_link)
         entities.extend(await get_vehicle_entities(hass, vehicle_proxy))
     return entities
 
 
-async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
+async def get_vehicle_entities(
+    hass, vehicle_proxy: RenaultVehicleProxy
+) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
     entities = []
     entities.append(RenaultBatteryLevelSensor(vehicle_proxy, "Battery Level"))
@@ -88,10 +92,7 @@ class RenaultBatteryLevelSensor(RenaultBatteryDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if "batteryLevel" in data:
-            return data.get("batteryLevel")
-        LOGGER.warning("batteryLevel not available in coordinator data %s", data)
+        return self.data.batteryLevel
 
     @property
     def device_class(self):
@@ -106,18 +107,21 @@ class RenaultBatteryLevelSensor(RenaultBatteryDataEntity):
     @property
     def icon(self):
         """Icon handling."""
-        data = self.coordinator.data
-        chargestate = data["chargingStatus"] == 1
-        return icon_for_battery_level(battery_level=self.state, charging=chargestate)
+        if self.data.chargingStatus is not None:  # Zero can be a valid value
+            charging = self.data.get_charging_status() == ChargeState.CHARGE_IN_PROGRESS
+        else:
+            charging = False
+        return icon_for_battery_level(battery_level=self.state, charging=charging)
 
     @property
     def device_state_attributes(self):
         """Return the state attributes of this entity."""
         attrs = {}
         attrs.update(super().device_state_attributes)
-        data = self.coordinator.data
-        if "batteryAvailableEnergy" in data:
-            attrs[ATTR_BATTERY_AVAILABLE_ENERGY] = data["batteryAvailableEnergy"]
+        if "batteryAvailableEnergy" in self.data.raw_data:
+            attrs[ATTR_BATTERY_AVAILABLE_ENERGY] = self.data.raw_data[
+                "batteryAvailableEnergy"
+            ]
         return attrs
 
 
@@ -127,10 +131,7 @@ class RenaultBatteryTemperatureSensor(RenaultBatteryDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if "batteryTemperature" in data:
-            return data.get("batteryTemperature")
-        LOGGER.warning("batteryTemperature not available in coordinator data %s", data)
+        return self.data.batteryTemperature
 
     @property
     def device_class(self):
@@ -149,10 +150,8 @@ class RenaultChargeModeSensor(RenaultChargeModeDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if hasattr(data, "name"):
-            return data.name
-        return data
+        if self.data.chargeMode is not None:  # Zero can be a valid value
+            return self.data.get_charge_mode()
 
 
 class RenaultChargingRemainingTimeSensor(RenaultBatteryDataEntity):
@@ -161,11 +160,7 @@ class RenaultChargingRemainingTimeSensor(RenaultBatteryDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if "chargingRemainingTime" in data:
-            return data["chargingRemainingTime"]
-        LOGGER.debug("chargingRemainingTime not available in coordinator data %s", data)
-        return None
+        return self.data.chargingRemainingTime
 
 
 class RenaultChargingPowerSensor(RenaultBatteryDataEntity):
@@ -174,15 +169,11 @@ class RenaultChargingPowerSensor(RenaultBatteryDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if "chargingInstantaneousPower" in data:
-            if self.proxy.model_code in MODEL_USES_KWH:
-                return data["chargingInstantaneousPower"]
-            else:
-                return data["chargingInstantaneousPower"] / 1000
-        LOGGER.debug(
-            "chargingInstantaneousPower not available in coordinator data %s", data
-        )
+        result = self.data.chargingInstantaneousPower
+        if result is not None:  # Zero can be a valid value
+            if self.proxy.model_code not in MODEL_USES_KWH:
+                result = result / 1000
+        return result
 
     @property
     def unit_of_measurement(self):
@@ -196,10 +187,7 @@ class RenaultOutsideTemperatureSensor(RenaultHVACDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if "externalTemperature" in data:
-            return data["externalTemperature"]
-        LOGGER.debug("externalTemperature not available in coordinator data %s", data)
+        return self.data.externalTemperature
 
     @property
     def unit_of_measurement(self) -> str:
@@ -213,14 +201,9 @@ class RenaultPlugStateSensor(RenaultBatteryDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if "plugStatus" in data:
-            try:
-                plug_state = PlugState(data["plugStatus"])
-            except ValueError:
-                plug_state = PlugState.NOT_AVAILABLE
-            return slugify(plug_state.name)
-        LOGGER.debug("plugStatus not available in coordinator data %s", data)
+        if self.data.plugStatus is not None:  # Zero can be a valid value
+            plug_status = self.data.get_plug_status()
+            return slugify(plug_status.name)
 
     @property
     def icon(self):
@@ -241,14 +224,9 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if "chargingStatus" in data:
-            try:
-                charge_state = ChargeState(data["chargingStatus"])
-            except ValueError:
-                charge_state = ChargeState.NOT_AVAILABLE
-            return slugify(charge_state.name)
-        LOGGER.debug("chargingStatus not available in coordinator data %s", data)
+        if self.data.chargingStatus is not None:  # Zero can be a valid value
+            charging_status = self.data.get_charging_status()
+            return slugify(charging_status.name)
 
     @property
     def icon(self):
@@ -269,13 +247,11 @@ class RenaultMileageSensor(RenaultMileageDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if "totalMileage" in data:
-            mileage = data["totalMileage"]
+        mileage = self.data.totalMileage
+        if mileage is not None:  # Zero can be a valid value
             if not self.hass.config.units.is_metric:
                 mileage = IMPERIAL_SYSTEM.length(mileage, METRIC_SYSTEM.length_unit)
             return round(mileage)
-        LOGGER.debug("totalMileage not available in coordinator data %s", data)
 
     @property
     def unit_of_measurement(self):
@@ -291,13 +267,11 @@ class RenaultRangeSensor(RenaultBatteryDataEntity):
     @property
     def state(self):
         """Return the state of this entity."""
-        data = self.coordinator.data
-        if "batteryAutonomy" in data:
-            autonomy = data["batteryAutonomy"]
+        autonomy = self.data.batteryAutonomy
+        if autonomy is not None:  # Zero can be a valid value
             if not self.hass.config.units.is_metric:
                 autonomy = IMPERIAL_SYSTEM.length(autonomy, METRIC_SYSTEM.length_unit)
             return autonomy
-        LOGGER.debug("batteryAutonomy not available in coordinator data %s", data)
 
     @property
     def unit_of_measurement(self):

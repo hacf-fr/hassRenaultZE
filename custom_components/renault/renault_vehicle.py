@@ -1,8 +1,9 @@
-"""Proxy to handle account communication with Renault servers via PyZE."""
+"""Proxy to handle account communication with Renault servers."""
 from datetime import timedelta
 import logging
+from renault_api.model.kamereon import KamereonVehiclesLink
 
-from pyze.api import Vehicle
+from renault_api.renault_vehicle import RenaultVehicle
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -14,17 +15,18 @@ LONG_SCAN_INTERVAL = timedelta(minutes=10)
 LOGGER = logging.getLogger(__name__)
 
 
-class PyzeVehicleProxy:
-    """Handle vehicle communication with Renault servers via PyZE."""
+class RenaultVehicleProxy:
+    """Handle vehicle communication with Renault servers."""
 
-    def __init__(self, hass, vehicle_link, pyze_vehicle: Vehicle):
+    def __init__(
+        self, hass, vehicle_link: KamereonVehiclesLink, vehicle: RenaultVehicle
+    ):
         """Initialise vehicle proxy."""
         self.hass = hass
         self._vehicle_link = vehicle_link
-        self._pyze_vehicle = pyze_vehicle
+        self._vehicle = vehicle
         self._device_info = None
         self.coordinators = {}
-        self.async_initialise = self._async_initialise()
         self.hvac_target_temperature = 21
 
     @property
@@ -35,22 +37,22 @@ class PyzeVehicleProxy:
     @property
     def registration(self) -> str:
         """Return the registration of the vehicle."""
-        return self._vehicle_link["vehicleDetails"]["registrationNumber"]
+        return self._vehicle_link.raw_data["vehicleDetails"]["registrationNumber"]
 
     @property
     def model_code(self) -> str:
         """Return the model code of the vehicle."""
-        return self._vehicle_link["vehicleDetails"]["model"]["code"]
+        return self._vehicle_link.raw_data["vehicleDetails"]["model"]["code"]
 
     @property
     def vin(self) -> str:
         """Return the VIN of the vehicle."""
-        return self._vehicle_link["vin"]
+        return self._vehicle_link.vin
 
-    async def _async_initialise(self):
+    async def async_initialise(self):
         """Load available sensors."""
-        brand = self._vehicle_link["brand"]
-        model_label = self._vehicle_link["vehicleDetails"]["model"]["label"]
+        brand = self._vehicle_link.raw_data["brand"]
+        model_label = self._vehicle_link.raw_data["vehicleDetails"]["model"]["label"]
         self._device_info = {
             "identifiers": {(DOMAIN, self.vin)},
             "manufacturer": brand.capitalize(),
@@ -112,52 +114,44 @@ class PyzeVehicleProxy:
 
     async def get_battery_status(self):
         """Get battery_status."""
-        return await self.hass.async_add_executor_job(self._pyze_vehicle.battery_status)
+        return await self._vehicle.get_battery_status()
 
     async def get_charge_mode(self):
         """Get charge_mode."""
-        return await self.hass.async_add_executor_job(self._pyze_vehicle.charge_mode)
+        return await self._vehicle.get_charge_mode()
 
     async def get_charge_schedules(self):
         """Get charge schedules."""
-        return await self.hass.async_add_executor_job(
-            self._pyze_vehicle.charge_schedules
-        )
+        return await self._vehicle.get_charging_settings()
 
     async def get_hvac_status(self):
         """Get hvac_status."""
-        return await self.hass.async_add_executor_job(self._pyze_vehicle.hvac_status)
+        return await self._vehicle.get_hvac_status()
 
     async def get_location(self):
         """Get location."""
-        return await self.hass.async_add_executor_job(self._pyze_vehicle.location)
+        return await self._vehicle.get_location()
 
     async def get_mileage(self):
         """Get mileage."""
-        return await self.hass.async_add_executor_job(self._pyze_vehicle.mileage)
+        return await self._vehicle.get_cockpit()
 
-    async def send_ac_start(self, when=None, temperature=21):
+    async def send_ac_start(self, temperature, when=None):
         """Start A/C."""
-        return await self.hass.async_add_executor_job(
-            self._pyze_vehicle.ac_start, when, temperature
-        )
+        return await self._vehicle.set_ac_start(temperature, when)
 
     async def send_cancel_ac(self):
         """Cancel A/C."""
-        return await self.hass.async_add_executor_job(self._pyze_vehicle.cancel_ac)
+        return await self._vehicle.set_ac_stop()
 
     async def send_set_charge_mode(self, charge_mode):
         """Set charge mode."""
-        return await self.hass.async_add_executor_job(
-            self._pyze_vehicle.set_charge_mode, charge_mode
-        )
+        return await self._vehicle.set_charge_mode(charge_mode)
 
     async def send_charge_start(self):
         """Start charge."""
-        return await self.hass.async_add_executor_job(self._pyze_vehicle.charge_start)
+        return await self._vehicle.set_charge_start()
 
     async def send_set_charge_schedules(self, schedules):
         """Set charge schedules."""
-        return await self.hass.async_add_executor_job(
-            self._pyze_vehicle.set_charge_schedules, schedules
-        )
+        return await self._vehicle.set_charge_schedules(schedules)

@@ -11,7 +11,7 @@ from .const import (  # pylint: disable=unused-import
     CONF_LOCALE,
     DOMAIN,
 )
-from .pyzeproxy import PyzeProxy
+from .renault_hub import RenaultHub
 
 
 class RenaultFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -23,7 +23,7 @@ class RenaultFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self):
         """Initialize the Renault config flow."""
         self.renault_config = {}
-        self.pyzeproxy = None
+        self.renault_hub = None
 
     async def async_step_user(self, user_input=None):
         """Handle a Renault config flow start.
@@ -53,9 +53,10 @@ class RenaultFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Request credentials."""
         if user_input:
             self.renault_config.update(user_input)
-            self.pyzeproxy = PyzeProxy(self.hass)
-            self.pyzeproxy.set_api_keys(self.renault_config)
-            if not await self.pyzeproxy.attempt_login(self.renault_config):
+            self.renault_hub = RenaultHub(self.hass, self.renault_config[CONF_LOCALE])
+            if not await self.renault_hub.attempt_login(
+                user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
+            ):
                 return self._show_credentials_form({"base": "invalid_credentials"})
             return await self.async_step_kamereon()
         return self._show_credentials_form()
@@ -81,7 +82,7 @@ class RenaultFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 title=user_input[CONF_KAMEREON_ACCOUNT_ID], data=self.renault_config
             )
 
-        accounts = await self.pyzeproxy.get_account_ids()
+        accounts = await self.renault_hub.get_account_ids()
         if len(accounts) == 0:
             return self.async_abort(reason="kamereon_no_account")
         if len(accounts) == 1:

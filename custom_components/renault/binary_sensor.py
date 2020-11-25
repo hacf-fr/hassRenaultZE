@@ -1,16 +1,18 @@
 """Support for Renault sensors."""
 import logging
+from typing import List
 
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_PLUG,
     DEVICE_CLASS_BATTERY_CHARGING,
     BinarySensorEntity,
 )
+from renault_api.model.kamereon import ChargeState, PlugState
 
 from .const import DOMAIN
-from .pyzeproxy import PyzeProxy
-from .pyzevehicleproxy import PyzeVehicleProxy
-from .renaultentity import RenaultBatteryDataEntity
+from .renault_hub import RenaultHub
+from .renault_vehicle import RenaultVehicleProxy
+from .renault_entities import RenaultBatteryDataEntity, RenaultDataEntity
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,24 +23,26 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Renault entities from config entry."""
-    proxy = hass.data[DOMAIN][config_entry.unique_id]
-    entities = await get_entities(hass, proxy)
+    proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
+    entities: List[RenaultDataEntity] = await get_entities(proxy)
     proxy.entities.extend(entities)
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
-async def get_entities(hass, proxy: PyzeProxy):
+async def get_entities(proxy: RenaultHub) -> List[RenaultDataEntity]:
     """Create Renault entities for all vehicles."""
-    entities = []
+    entities: List[RenaultDataEntity] = []
     for vehicle_link in proxy.get_vehicle_links():
-        vehicle_proxy = await proxy.get_vehicle_proxy(vehicle_link)
-        entities.extend(await get_vehicle_entities(hass, vehicle_proxy))
+        vehicle_proxy = await proxy.get_vehicle(vehicle_link)
+        entities.extend(await get_vehicle_entities(vehicle_proxy))
     return entities
 
 
-async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
+async def get_vehicle_entities(
+    vehicle_proxy: RenaultVehicleProxy,
+) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
-    entities = []
+    entities: List[RenaultDataEntity] = []
     entities.append(RenaultPluggedInSensor(vehicle_proxy, "Plugged In"))
     entities.append(RenaultChargingSensor(vehicle_proxy, "Charging"))
     return entities
@@ -50,7 +54,8 @@ class RenaultPluggedInSensor(RenaultBatteryDataEntity, BinarySensorEntity):
     @property
     def is_on(self):
         """Return true if the binary sensor is on."""
-        return self.coordinator.data.get("plugStatus") == 1
+        if self.data.plugStatus is not None:  # Zero can be a valid value
+            return self.data.get_plug_status() == PlugState.PLUGGED
 
     @property
     def icon(self):
@@ -71,7 +76,8 @@ class RenaultChargingSensor(RenaultBatteryDataEntity, BinarySensorEntity):
     @property
     def is_on(self):
         """Return true if the binary sensor is on."""
-        return self.coordinator.data.get("chargingStatus") == 1
+        if self.data.chargingStatus is not None:  # Zero can be a valid value
+            return self.data.get_charging_status() == ChargeState.CHARGE_IN_PROGRESS
 
     @property
     def icon(self):

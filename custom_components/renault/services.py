@@ -2,7 +2,7 @@
 import logging
 from typing import Dict
 
-from pyze.api import ChargeMode
+from renault_api.model.kamereon import ChargeMode
 import requests
 import voluptuous as vol
 
@@ -10,7 +10,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN, REGEX_VIN
-from .pyzevehicleproxy import PyzeVehicleProxy
+from .renault_vehicle import RenaultVehicleProxy
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -73,8 +73,8 @@ async def async_setup_services(hass: HomeAssistantType):
             when = service_call.data.get(SCHEMA_WHEN, None)
             temperature = service_call.data.get(SCHEMA_TEMPERATURE, 21)
             _LOGGER.debug("A/C start attempt: %s / %s", when, temperature)
-            pyze_vehicle = get_pyze_vehicle(service_call.data)
-            jsonresult = await pyze_vehicle.send_ac_start(when, temperature)
+            vehicle = get_vehicle(service_call.data)
+            jsonresult = await vehicle.send_ac_start(when, temperature)
             _LOGGER.info("A/C start result: %s", jsonresult)
         except requests.exceptions.RequestException as err:
             _LOGGER.error("A/C start failed: %s", err)
@@ -83,8 +83,8 @@ async def async_setup_services(hass: HomeAssistantType):
         """Cancel A/C."""
         try:
             _LOGGER.debug("A/C cancel attempt.")
-            pyze_vehicle = get_pyze_vehicle(service_call.data)
-            jsonresult = await pyze_vehicle.send_cancel_ac()
+            vehicle = get_vehicle(service_call.data)
+            jsonresult = await vehicle.send_cancel_ac()
             _LOGGER.info("A/C cancel result: %s", jsonresult)
         except requests.exceptions.RequestException as err:
             _LOGGER.error("A/C cancel failed: %s", err)
@@ -95,8 +95,8 @@ async def async_setup_services(hass: HomeAssistantType):
         try:
             charge_mode = service_call.data.get(SCHEMA_CHARGE_MODE)
             _LOGGER.debug("Charge set mode attempt: %s", charge_mode)
-            pyze_vehicle = get_pyze_vehicle(service_call.data)
-            jsonresult = await pyze_vehicle.send_set_charge_mode(charge_mode)
+            vehicle = get_vehicle(service_call.data)
+            jsonresult = await vehicle.send_set_charge_mode(charge_mode)
             _LOGGER.info("Charge set mode result: %s", jsonresult)
         except requests.exceptions.RequestException as err:
             _LOGGER.error("Charge set mode failed: %s", err)
@@ -105,8 +105,8 @@ async def async_setup_services(hass: HomeAssistantType):
         """Start charge."""
         try:
             _LOGGER.debug("Charge start attempt.")
-            pyze_vehicle = get_pyze_vehicle(service_call.data)
-            jsonresult = await pyze_vehicle.send_charge_start()
+            vehicle = get_vehicle(service_call.data)
+            jsonresult = await vehicle.send_charge_start()
             _LOGGER.info("Charge start result: %s", jsonresult)
         except requests.exceptions.RequestException as err:
             _LOGGER.error("Charge start failed: %s", err)
@@ -117,11 +117,11 @@ async def async_setup_services(hass: HomeAssistantType):
         try:
             schedules = service_call.data.get(SCHEMA_SCHEDULES)
             _LOGGER.debug("Charge set schedules attempt: %s", schedules)
-            pyze_vehicle = get_pyze_vehicle(service_call.data)
-            charge_schedules = await pyze_vehicle.get_charge_schedules()
+            vehicle = get_vehicle(service_call.data)
+            charge_schedules = await vehicle.get_charge_schedules()
             charge_schedules.update(schedules)
 
-            jsonresult = await pyze_vehicle.send_set_charge_schedules(charge_schedules)
+            jsonresult = await vehicle.send_set_charge_schedules(charge_schedules)
             _LOGGER.info("Charge set schedules result: %s", jsonresult)
             _LOGGER.info(
                 "It may take some time before these changes are reflected in your vehicle."
@@ -129,14 +129,14 @@ async def async_setup_services(hass: HomeAssistantType):
         except requests.exceptions.RequestException as err:
             _LOGGER.error("Charge set schedules failed: %s", err)
 
-    def get_pyze_vehicle(service_call_data: Dict) -> PyzeVehicleProxy:
-        """Get pyze_vehicle from service_call data."""
+    def get_vehicle(service_call_data: Dict) -> RenaultVehicleProxy:
+        """Get vehicle from service_call data."""
         vin = service_call_data[SCHEMA_VIN]
         for proxy in hass.data[DOMAIN].values():
-            pyze_vehicle = proxy.get_vehicle_from_vin(vin)
-            if pyze_vehicle is not None:
-                return pyze_vehicle
-        raise ValueError(f"Unable to load pyze vehicle with VIN: {vin}")
+            vehicle = proxy.get_vehicle_from_vin(vin)
+            if vehicle is not None:
+                return vehicle
+        raise ValueError(f"Unable to load vehicle with VIN: {vin}")
 
     hass.services.async_register(
         DOMAIN,

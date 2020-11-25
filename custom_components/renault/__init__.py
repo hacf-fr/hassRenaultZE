@@ -1,8 +1,10 @@
 """Support for Renault devices."""
 import voluptuous as vol
 
-from .const import CONF_KAMEREON_ACCOUNT_ID, DOMAIN, SUPPORTED_PLATFORMS
-from .pyzeproxy import PyzeProxy
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+
+from .const import CONF_KAMEREON_ACCOUNT_ID, CONF_LOCALE, DOMAIN, SUPPORTED_PLATFORMS
+from .renault_hub import RenaultHub
 from .services import async_setup_services, async_unload_services
 
 CONFIG_SCHEMA = vol.Schema(
@@ -19,18 +21,15 @@ async def async_setup_entry(hass, config_entry):
     """Load a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
-    pyzeproxy = PyzeProxy(hass)
-    pyzeproxy.set_api_keys(config_entry.data)
-    if not await pyzeproxy.attempt_login(config_entry.data):
+    renault_hub = RenaultHub(hass, config_entry.data[CONF_LOCALE])
+    if not await renault_hub.attempt_login(
+        config_entry.data[CONF_USERNAME], config_entry.data[CONF_PASSWORD]
+    ):
         return False
 
-    await pyzeproxy.initialise(config_entry.data)
+    await renault_hub.set_account_id(config_entry.data[CONF_KAMEREON_ACCOUNT_ID])
 
-    if config_entry.unique_id is None:
-        hass.config_entries.async_update_entry(
-            config_entry, unique_id=config_entry.data[CONF_KAMEREON_ACCOUNT_ID]
-        )
-    hass.data[DOMAIN][config_entry.unique_id] = pyzeproxy
+    hass.data[DOMAIN][config_entry.unique_id] = renault_hub
 
     for component in SUPPORTED_PLATFORMS:
         hass.async_create_task(

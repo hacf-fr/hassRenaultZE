@@ -11,9 +11,9 @@ from homeassistant.components.climate.const import (
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 
 from .const import DOMAIN
-from .pyzeproxy import PyzeProxy
-from .pyzevehicleproxy import PyzeVehicleProxy
-from .renaultentity import RenaultHVACDataEntity
+from .renault_hub import RenaultHub
+from .renault_vehicle import RenaultVehicleProxy
+from .renault_entities import RenaultDataEntity, RenaultHVACDataEntity
 
 ATTR_HVAC_STATUS = "hvac_status"
 
@@ -28,24 +28,26 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Renault entities from config entry."""
-    proxy = hass.data[DOMAIN][config_entry.unique_id]
-    entities = await get_entities(hass, proxy)
+    proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
+    entities: List[RenaultDataEntity] = await get_entities(proxy)
     proxy.entities.extend(entities)
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
-async def get_entities(hass, proxy: PyzeProxy):
+async def get_entities(proxy: RenaultHub) -> List[RenaultDataEntity]:
     """Create Renault entities for all vehicles."""
-    entities = []
+    entities: List[RenaultDataEntity] = []
     for vehicle_link in proxy.get_vehicle_links():
-        vehicle_proxy = await proxy.get_vehicle_proxy(vehicle_link)
-        entities.extend(await get_vehicle_entities(hass, vehicle_proxy))
+        vehicle_proxy = await proxy.get_vehicle(vehicle_link)
+        entities.extend(await get_vehicle_entities(vehicle_proxy))
     return entities
 
 
-async def get_vehicle_entities(hass, vehicle_proxy: PyzeVehicleProxy):
+async def get_vehicle_entities(
+    vehicle_proxy: RenaultVehicleProxy,
+) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
-    entities = []
+    entities: List[RenaultDataEntity] = []
     entities.append(RenaultHVACController(vehicle_proxy, "HVAC"))
     return entities
 
@@ -56,12 +58,10 @@ class RenaultHVACController(RenaultHVACDataEntity, ClimateEntity):
     @property
     def hvac_mode(self) -> str:
         """Return hvac current operation mode."""
-        data = self.coordinator.data
-        if "hvacStatus" in data:
-            if data["hvacStatus"] == "off":
+        if self.data.hvacStatus:
+            if self.data.hvacStatus == "off":
                 return HVAC_MODE_OFF
             return HVAC_MODE_HEAT_COOL
-        return None
 
     @property
     def hvac_modes(self) -> List[str]:

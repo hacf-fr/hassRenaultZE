@@ -1,121 +1,81 @@
-"""Proxy to handle account communication with Renault servers via PyZE."""
-import asyncio
+"""Proxy to handle account communication with Renault servers."""
 import logging
+from typing import Dict, List, Optional
 
-from pyze.api import BasicCredentialStore, Gigya, Kamereon, Vehicle
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.typing import HomeAssistantType
 
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from renault_api.exceptions import GigyaResponseException
+from renault_api.model.kamereon import KamereonVehiclesLink
+from renault_api.renault_account import RenaultAccount
+from renault_api.renault_client import RenaultClient
 
-from .const import (
-    CONF_GIGYA_APIKEY,
-    CONF_KAMEREON_ACCOUNT_ID,
-    CONF_KAMEREON_APIKEY,
-    CONF_LOCALE,
-)
-from .pyzevehicleproxy import PyzeVehicleProxy
+from .renault_entities import RenaultDataEntity
+from .renault_vehicle import RenaultVehicleProxy
 
 LOGGER = logging.getLogger(__name__)
 
 
-class PyzeProxy:
-    """Handle account communication with Renault servers via PyZE."""
+class RenaultHub:
+    """Handle account communication with Renault servers."""
 
-    def __init__(self, hass):
+    def __init__(self, hass: HomeAssistantType, locale: str) -> None:
         """Initialise proxy."""
-        LOGGER.debug("Creating PyzeProxy")
+        LOGGER.debug("Creating RenaultHub")
         self._hass = hass
-        self._gigya = None
-        self._kamereon = None
-        self._vehicle_links = None
-        self._vehicle_proxies = {}
-        self._vehicles_lock = asyncio.Lock()
-        self.entities = []
+        self._client = RenaultClient(async_get_clientsession(self._hass), locale)
+        self._account: Optional[RenaultAccount] = None
+        self._vehicle_links: List[KamereonVehiclesLink] = []
+        self._vehicle_proxies: Dict[str, RenaultVehicleProxy] = {}
+        self.entities: List[RenaultDataEntity] = []
 
-    def set_api_keys(self, config_data):
-        """Set up gigya."""
-        credential_store = BasicCredentialStore()
-        credential_store.store(
-            "gigya-api-key", config_data.get(CONF_GIGYA_APIKEY), None
-        )
-        credential_store.store(
-            "kamereon-api-key", config_data.get(CONF_KAMEREON_APIKEY), None
-        )
-
-        self._gigya = Gigya(
-            credentials=credential_store,
-        )
-        self._kamereon = Kamereon(
-            gigya=self._gigya,
-            credentials=credential_store,
-            country=config_data.get(CONF_LOCALE)[-2:],
-        )
-
-    async def attempt_login(self, config_data) -> bool:
+    async def attempt_login(self, username: str, password: str) -> bool:
         """Attempt login to Renault servers."""
-        if self._gigya is None:
-            raise RuntimeError("Please ensure Gigya is initialised.")
         try:
-            if await self._hass.async_add_executor_job(
-                self._gigya.login,
-                config_data[CONF_USERNAME],
-                config_data[CONF_PASSWORD],
-            ):
-                return True
-        except RuntimeError as ex:
-            LOGGER.error("Login to Gigya failed: %s", ex)
+            await self._client.login(username, password)
+        except GigyaResponseException as ex:
+            LOGGER.error("Login to Renault failed: %s", ex.error_details)
+        else:
+            return True
         return False
 
-    async def initialise(self, config_data):
+    async def set_account_id(self, account_id: str) -> None:
         """Set up proxy."""
-        if self._kamereon is None:
-            raise RuntimeError("Please ensure Kamereon is initialised.")
-        self._kamereon.set_account_id(config_data[CONF_KAMEREON_ACCOUNT_ID])
-        vehicles = await self._hass.async_add_executor_job(self._kamereon.get_vehicles)
-        self._vehicle_links = vehicles["vehicleLinks"]
+        self._account = await self._client.get_api_account(account_id)
+        vehicles = await self._account.get_vehicles()
+        self._vehicle_links = vehicles.vehicleLinks
 
     async def get_account_ids(self) -> list:
         """Get Kamereon account ids."""
-        await self._hass.async_add_executor_job(self._gigya.account_info)
-
         accounts = []
-        for account_details in await self._hass.async_add_executor_job(
-            self._kamereon.get_accounts
-        ):
-            self._kamereon.set_account_id(account_details["accountId"])
-            vehicles = await self._hass.async_add_executor_job(
-                self._kamereon.get_vehicles
-            )
-            # get_vehicles() use cache: need to empty it between each iteration in the loop
-            self._kamereon.get_vehicles.cache_clear()
+        for account in await self._client.get_api_accounts():
+            vehicles = await account.get_vehicles()
 
             # Skip the account if no vehicles found in it.
-            if len(vehicles["vehicleLinks"]) != 0:
-                accounts.append(account_details["accountId"])
+            if len(vehicles.vehicleLinks) > 0:
+                accounts.append(account._account_id)
         return accounts
 
-    def get_vehicle_links(self):
+    def get_vehicle_links(self) -> List[KamereonVehiclesLink]:
         """Get list of vehicles."""
         return self._vehicle_links
 
-    def get_vehicle_from_vin(self, vin: str):
+    def get_vehicle_from_vin(self, vin: str) -> RenaultVehicleProxy:
         """Get vehicle from VIN."""
-        return self._vehicle_proxies[vin.upper()]
+        return self._vehicle_proxies[vin]
 
-    async def get_vehicle_proxy(self, vehicle_link: dict):
-        """Get a pyze proxy for the vehicle.
-
-        Using lock to ensure vehicle proxies are only created once across all platforms.
-        """
-        vin: str = vehicle_link["vin"]
-        vin = vin.upper()
-        async with self._vehicles_lock:
-            pyze_vehicle_proxy = self._vehicle_proxies.get(vin)
-            if pyze_vehicle_proxy is None:
-                pyze_vehicle_proxy = PyzeVehicleProxy(
-                    self._hass,
-                    vehicle_link,
-                    Vehicle(vehicle_link["vin"], self._kamereon),
-                )
-                self._vehicle_proxies[vin] = pyze_vehicle_proxy
-                await pyze_vehicle_proxy.async_initialise
+    async def get_vehicle(
+        self, vehicle_link: KamereonVehiclesLink
+    ) -> RenaultVehicleProxy:
+        """Get a proxy for the vehicle."""
+        vin = vehicle_link.vin
+        vehicle_proxy = self._vehicle_proxies.get(vin)
+        if vehicle_proxy is None:
+            vehicle_proxy = RenaultVehicleProxy(
+                self._hass,
+                vehicle_link,
+                await self._account.get_api_vehicle(vin),
+            )
+            await vehicle_proxy.async_initialise()
+            self._vehicle_proxies[vin] = vehicle_proxy
         return self._vehicle_proxies[vin]
