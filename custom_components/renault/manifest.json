@@ -5,7 +5,7 @@
   "documentation": "https://www.home-assistant.io/integrations/renault",
   "issue_tracker": "https://github.com/epenet/hassRenaultZE/issues",
   "requirements": [
-    "renault-api==0.0.1.dev1606315769"
+    "git+https://github.com/hacf-fr/renault-api.git@stateless#798b157d90a860e0f8c8680f3aa381a48df7cace"
   ],
   "codeowners": [
     "@epenet"

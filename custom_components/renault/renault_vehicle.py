@@ -1,7 +1,7 @@
 """Proxy to handle account communication with Renault servers."""
 from datetime import timedelta
 import logging
-from renault_api.model.kamereon import KamereonVehiclesLink
+from renault_api.kamereon.models import KamereonVehiclesLink
 
 from renault_api.renault_vehicle import RenaultVehicle
 

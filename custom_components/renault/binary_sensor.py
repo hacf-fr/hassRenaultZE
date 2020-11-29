@@ -7,7 +7,7 @@ from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_BATTERY_CHARGING,
     BinarySensorEntity,
 )
-from renault_api.model.kamereon import ChargeState, PlugState
+from renault_api.kamereon.enums import ChargeState, PlugState
 
 from .const import DOMAIN
 from .renault_hub import RenaultHub

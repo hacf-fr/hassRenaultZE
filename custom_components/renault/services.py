@@ -2,7 +2,7 @@
 import logging
 from typing import Dict
 
-from renault_api.model.kamereon import ChargeMode
+from renault_api.kamereon.models import ChargeMode
 import requests
 import voluptuous as vol
 
@@ -74,7 +74,7 @@ async def async_setup_services(hass: HomeAssistantType):
             temperature = service_call.data.get(SCHEMA_TEMPERATURE, 21)
             _LOGGER.debug("A/C start attempt: %s / %s", when, temperature)
             vehicle = get_vehicle(service_call.data)
-            jsonresult = await vehicle.send_ac_start(when, temperature)
+            jsonresult = await vehicle.send_ac_start(temperature=temperature, when=when)
             _LOGGER.info("A/C start result: %s", jsonresult)
         except requests.exceptions.RequestException as err:
             _LOGGER.error("A/C start failed: %s", err)

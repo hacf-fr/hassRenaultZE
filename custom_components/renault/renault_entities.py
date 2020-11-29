@@ -2,7 +2,7 @@
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
-from renault_api.model.kamereon import (
+from renault_api.kamereon.models import (
     KamereonVehicleBatteryStatusData,
     KamereonVehicleChargeModeData,
     KamereonVehicleCockpitData,

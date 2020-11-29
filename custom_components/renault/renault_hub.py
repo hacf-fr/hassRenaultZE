@@ -5,8 +5,8 @@ from typing import Dict, List, Optional
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import HomeAssistantType
 
-from renault_api.exceptions import GigyaResponseException
-from renault_api.model.kamereon import KamereonVehiclesLink
+from renault_api.gigya.exceptions import GigyaResponseException
+from renault_api.kamereon.models import KamereonVehiclesLink
 from renault_api.renault_account import RenaultAccount
 from renault_api.renault_client import RenaultClient
 
@@ -23,7 +23,9 @@ class RenaultHub:
         """Initialise proxy."""
         LOGGER.debug("Creating RenaultHub")
         self._hass = hass
-        self._client = RenaultClient(async_get_clientsession(self._hass), locale)
+        self._client = RenaultClient(
+            websession=async_get_clientsession(self._hass), locale=locale
+        )
         self._account: Optional[RenaultAccount] = None
         self._vehicle_links: List[KamereonVehiclesLink] = []
         self._vehicle_proxies: Dict[str, RenaultVehicleProxy] = {}

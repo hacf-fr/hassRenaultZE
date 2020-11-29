@@ -2,7 +2,7 @@
 import logging
 from typing import List
 
-from renault_api.model.kamereon import ChargeState, PlugState
+from renault_api.kamereon.enums import ChargeState, PlugState
 
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
