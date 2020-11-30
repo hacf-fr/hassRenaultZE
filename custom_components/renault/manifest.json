@@ -2,8 +2,8 @@
   "domain": "renault",
   "name": "Renault",
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/renault",
-  "issue_tracker": "https://github.com/epenet/hassRenaultZE/issues",
+  "documentation": "https://github.com/hacf-fr/hassRenaultZE",
+  "issue_tracker": "https://github.com/hacf-fr/hassRenaultZE/issues",
   "requirements": [
     "git+https://github.com/hacf-fr/renault-api.git@session-provider#caa4f1e07044805b18daf3541ff2c31142c551c8"
   ],
