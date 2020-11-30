@@ -43,8 +43,9 @@ async def get_vehicle_entities(
 ) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
     entities: List[RenaultDataEntity] = []
-    entities.append(RenaultPluggedInSensor(vehicle_proxy, "Plugged In"))
-    entities.append(RenaultChargingSensor(vehicle_proxy, "Charging"))
+    if "battery" in vehicle_proxy.coordinators:
+        entities.append(RenaultPluggedInSensor(vehicle_proxy, "Plugged In"))
+        entities.append(RenaultChargingSensor(vehicle_proxy, "Charging"))
     return entities
 
 

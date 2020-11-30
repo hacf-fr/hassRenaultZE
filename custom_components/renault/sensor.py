@@ -67,13 +67,14 @@ async def get_vehicle_entities(
 ) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
     entities = []
-    entities.append(RenaultMileageSensor(vehicle_proxy, "Mileage"))
-    entities.append(
-        RenaultOutsideTemperatureSensor(vehicle_proxy, "Outside Temperature")
-    )
+    if "cockpit" in vehicle_proxy.coordinators:
+        entities.append(RenaultMileageSensor(vehicle_proxy, "Mileage"))
+    if "hvac_status" in vehicle_proxy.coordinators:
+        entities.append(
+            RenaultOutsideTemperatureSensor(vehicle_proxy, "Outside Temperature")
+        )
     if "battery" in vehicle_proxy.coordinators:
         entities.append(RenaultBatteryLevelSensor(vehicle_proxy, "Battery Level"))
-        entities.append(RenaultChargeModeSensor(vehicle_proxy, "Charge Mode"))
         entities.append(RenaultChargeStateSensor(vehicle_proxy, "Charge State"))
         entities.append(
             RenaultChargingRemainingTimeSensor(vehicle_proxy, "Charging Remaining Time")
@@ -84,6 +85,8 @@ async def get_vehicle_entities(
         entities.append(
             RenaultBatteryTemperatureSensor(vehicle_proxy, "Battery Temperature")
         )
+    if "charge_mode" in vehicle_proxy.coordinators:
+        entities.append(RenaultChargeModeSensor(vehicle_proxy, "Charge Mode"))
     return entities
 
 

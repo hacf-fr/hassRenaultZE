@@ -48,7 +48,8 @@ async def get_vehicle_entities(
 ) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
     entities: List[RenaultDataEntity] = []
-    entities.append(RenaultHVACController(vehicle_proxy, "HVAC"))
+    if "hvac_status" in vehicle_proxy.coordinators:
+        entities.append(RenaultHVACController(vehicle_proxy, "HVAC"))
     return entities
 
 
