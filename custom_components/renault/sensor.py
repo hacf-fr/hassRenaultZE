@@ -69,6 +69,9 @@ async def get_vehicle_entities(
     entities = []
     if "cockpit" in vehicle_proxy.coordinators:
         entities.append(RenaultMileageSensor(vehicle_proxy, "Mileage"))
+        if vehicle_proxy.vehicle_details.energy.code == "ESS":
+            entities.append(RenaultFuelRangeSensor(vehicle_proxy, "Fuel Range"))
+            entities.append(RenaultFuelQuantitySensor(vehicle_proxy, "Fuel Quantity"))
     if "hvac_status" in vehicle_proxy.coordinators:
         entities.append(
             RenaultOutsideTemperatureSensor(vehicle_proxy, "Outside Temperature")
@@ -81,7 +84,7 @@ async def get_vehicle_entities(
         )
         entities.append(RenaultChargingPowerSensor(vehicle_proxy, "Charging Power"))
         entities.append(RenaultPlugStateSensor(vehicle_proxy, "Plug State"))
-        entities.append(RenaultBatteryRangeSensor(vehicle_proxy, "Range"))
+        entities.append(RenaultBatteryRangeSensor(vehicle_proxy, "Battery Range"))
         entities.append(
             RenaultBatteryTemperatureSensor(vehicle_proxy, "Battery Temperature")
         )
@@ -243,6 +246,48 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
     def device_class(self):
         """Returning sensor device class"""
         return DEVICE_CLASS_CHARGE_STATE
+
+
+class RenaultFuelAutonomySensor(RenaultCockpitDataEntity):
+    """Fuel autonomy sensor."""
+
+    @property
+    def state(self):
+        """Return the state of this entity."""
+        autonomy = self.data.fuelAutonomy
+        if autonomy is not None:  # Zero can be a valid value
+            if not self.hass.config.units.is_metric:
+                autonomy = IMPERIAL_SYSTEM.length(autonomy, METRIC_SYSTEM.length_unit)
+            return round(autonomy)
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity."""
+        if not self.hass.config.units.is_metric:
+            return LENGTH_MILES
+        return LENGTH_KILOMETERS
+
+
+class RenaultFuelQuantitySensor(RenaultCockpitDataEntity):
+    """Fuel quantity sensor."""
+
+    @property
+    def state(self):
+        """Return the state of this entity."""
+        fuel_quantity = self.data.fuelQuantity
+        if fuel_quantity is not None:  # Zero can be a valid value
+            if not self.hass.config.units.is_metric:
+                fuel_quantity = IMPERIAL_SYSTEM.volume(
+                    fuel_quantity, METRIC_SYSTEM.volume_unit
+                )
+            return round(fuel_quantity)
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity."""
+        if not self.hass.config.units.is_metric:
+            return LENGTH_MILES
+        return LENGTH_KILOMETERS
 
 
 class RenaultMileageSensor(RenaultCockpitDataEntity):

@@ -4,7 +4,7 @@ import logging
 from typing import Dict
 from renault_api.kamereon.enums import EnergyCode
 
-from renault_api.kamereon.models import KamereonVehiclesLink
+from renault_api.kamereon.models import KamereonVehiclesDetails, KamereonVehiclesLink
 from renault_api.renault_vehicle import RenaultVehicle
 
 from .renault_coordinator import RenaultDataUpdateCoordinator
@@ -32,6 +32,11 @@ class RenaultVehicleProxy:
         self.hvac_target_temperature = 21
 
     @property
+    def vehicle_details(self) -> KamereonVehiclesDetails:
+        """Return the specs of the vehicle."""
+        return self._vehicle_link.vehicleDetails
+
+    @property
     def device_info(self):
         """Return a device description for device registry."""
         return self._device_info
@@ -39,12 +44,12 @@ class RenaultVehicleProxy:
     @property
     def registration(self) -> str:
         """Return the registration of the vehicle."""
-        return self._vehicle_link.get_details().get_registration_number()
+        return self.vehicle_details.registrationNumber
 
     @property
     def model_code(self) -> str:
         """Return the model code of the vehicle."""
-        return self._vehicle_link.get_details().raw_data["model"]["code"]
+        return self.vehicle_details.model.code
 
     @property
     def vin(self) -> str:
@@ -53,14 +58,12 @@ class RenaultVehicleProxy:
 
     async def async_initialise(self):
         """Load available sensors."""
-        brand = self._vehicle_link.raw_data["brand"]
-        model_label = self._vehicle_link.get_details().get_model_label()
         self._device_info = {
             "identifiers": {(DOMAIN, self.vin)},
-            "manufacturer": brand.capitalize(),
-            "model": model_label.capitalize(),
+            "manufacturer": self.vehicle_details.brand.label.capitalize(),
+            "model": self.vehicle_details.model.label.capitalize(),
             "name": self.registration,
-            "sw_version": self.model_code,
+            "sw_version": self.vehicle_details.model.code,
         }
 
         self.coordinators["cockpit"] = RenaultDataUpdateCoordinator(
