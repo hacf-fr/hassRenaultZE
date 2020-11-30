@@ -1,19 +1,13 @@
 {
   "config": {
     "abort": {
+      "already_configured": "Ce compte est déjà configuré",
       "kamereon_no_account": "Aucun compte Kamereon trouvé"
     },
     "error": {
       "invalid_credentials": "Authentification invalide"
     },
     "step": {
-      "credentials": {
-        "data": {
-          "username": "Email",
-          "password": "Mot de passe"
-        },
-        "title": "Entrez vos information d'identification Renault"
-      },
       "kamereon": {
         "data": {
           "kamereon_account_id": "ID du compte Kamereon"
@@ -22,9 +16,11 @@
       },
       "user": {
         "data": {
-          "locale": "Code régional"
+          "locale": "Code régional",
+          "username": "Email",
+          "password": "Mot de passe"
         },
-        "title": "Choisissez le code régional"
+        "title": "Entrez vos information d'identification Renault"
       }
     }
   }
