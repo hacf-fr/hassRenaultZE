@@ -106,12 +106,12 @@ class RenaultLocationDataEntity(RenaultDataEntity):
         return attrs
 
 
-class RenaultMileageDataEntity(RenaultDataEntity):
-    """Implementation of a Renault entity with mileage coordinator."""
+class RenaultCockpitDataEntity(RenaultDataEntity):
+    """Implementation of a Renault entity with cockpit coordinator."""
 
     def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
         """Initialise entity."""
-        super().__init__(proxy, entity_type, "mileage")
+        super().__init__(proxy, entity_type, "cockpit")
 
     @property
     def data(self) -> KamereonVehicleCockpitData:

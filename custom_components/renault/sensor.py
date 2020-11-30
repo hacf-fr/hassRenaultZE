@@ -29,7 +29,7 @@ from .renault_entities import (
     RenaultChargeModeDataEntity,
     RenaultDataEntity,
     RenaultHVACDataEntity,
-    RenaultMileageDataEntity,
+    RenaultCockpitDataEntity,
 )
 
 ATTR_BATTERY_AVAILABLE_ENERGY = "battery_available_energy"
@@ -50,7 +50,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
     entities = await get_entities(hass, proxy)
     proxy.entities.extend(entities)
-    async_add_entities(entities, False)
+    async_add_entities(entities)
 
 
 async def get_entities(hass, proxy: RenaultHub) -> List[RenaultDataEntity]:
@@ -67,22 +67,23 @@ async def get_vehicle_entities(
 ) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
     entities = []
-    entities.append(RenaultBatteryLevelSensor(vehicle_proxy, "Battery Level"))
-    entities.append(RenaultChargeModeSensor(vehicle_proxy, "Charge Mode"))
-    entities.append(RenaultChargeStateSensor(vehicle_proxy, "Charge State"))
-    entities.append(
-        RenaultChargingRemainingTimeSensor(vehicle_proxy, "Charging Remaining Time")
-    )
-    entities.append(RenaultChargingPowerSensor(vehicle_proxy, "Charging Power"))
     entities.append(RenaultMileageSensor(vehicle_proxy, "Mileage"))
     entities.append(
         RenaultOutsideTemperatureSensor(vehicle_proxy, "Outside Temperature")
     )
-    entities.append(RenaultPlugStateSensor(vehicle_proxy, "Plug State"))
-    entities.append(RenaultRangeSensor(vehicle_proxy, "Range"))
-    entities.append(
-        RenaultBatteryTemperatureSensor(vehicle_proxy, "Battery Temperature")
-    )
+    if "battery" in vehicle_proxy.coordinators:
+        entities.append(RenaultBatteryLevelSensor(vehicle_proxy, "Battery Level"))
+        entities.append(RenaultChargeModeSensor(vehicle_proxy, "Charge Mode"))
+        entities.append(RenaultChargeStateSensor(vehicle_proxy, "Charge State"))
+        entities.append(
+            RenaultChargingRemainingTimeSensor(vehicle_proxy, "Charging Remaining Time")
+        )
+        entities.append(RenaultChargingPowerSensor(vehicle_proxy, "Charging Power"))
+        entities.append(RenaultPlugStateSensor(vehicle_proxy, "Plug State"))
+        entities.append(RenaultBatteryRangeSensor(vehicle_proxy, "Range"))
+        entities.append(
+            RenaultBatteryTemperatureSensor(vehicle_proxy, "Battery Temperature")
+        )
     return entities
 
 
@@ -241,7 +242,7 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
         return DEVICE_CLASS_CHARGE_STATE
 
 
-class RenaultMileageSensor(RenaultMileageDataEntity):
+class RenaultMileageSensor(RenaultCockpitDataEntity):
     """Mileage sensor."""
 
     @property
@@ -261,8 +262,8 @@ class RenaultMileageSensor(RenaultMileageDataEntity):
         return LENGTH_KILOMETERS
 
 
-class RenaultRangeSensor(RenaultBatteryDataEntity):
-    """Range sensor."""
+class RenaultBatteryRangeSensor(RenaultBatteryDataEntity):
+    """Battery range sensor."""
 
     @property
     def state(self):
