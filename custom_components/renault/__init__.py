@@ -1,5 +1,4 @@
 """Support for Renault devices."""
-import voluptuous as vol
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
@@ -7,13 +6,10 @@ from .const import CONF_KAMEREON_ACCOUNT_ID, CONF_LOCALE, DOMAIN, SUPPORTED_PLAT
 from .renault_hub import RenaultHub
 from .services import async_setup_services, async_unload_services
 
-CONFIG_SCHEMA = vol.Schema(
-    {DOMAIN: vol.Schema({}, extra=vol.ALLOW_EXTRA)}, extra=vol.ALLOW_EXTRA
-)
-
 
 async def async_setup(hass, config):
-    """Old way of setting up integrations."""
+    """Set up renault integrations."""
+    hass.data.setdefault(DOMAIN, {})
     return True
 
 
