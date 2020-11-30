@@ -4,13 +4,12 @@ import logging
 from typing import Dict
 from renault_api.kamereon.enums import EnergyCode
 
-from renault_api.kamereon.exceptions import KamereonResponseException
 from renault_api.kamereon.models import KamereonVehiclesLink
 from renault_api.renault_vehicle import RenaultVehicle
 
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from .renault_coordinator import RenaultDataUpdateCoordinator
 
-from .const import DOMAIN, MODEL_SUPPORTS_LOCATION
+from .const import DOMAIN
 
 DEFAULT_SCAN_INTERVAL = timedelta(minutes=5)
 LONG_SCAN_INTERVAL = timedelta(minutes=10)
@@ -29,7 +28,7 @@ class RenaultVehicleProxy:
         self._vehicle_link = vehicle_link
         self._vehicle = vehicle
         self._device_info = None
-        self.coordinators: Dict[str, DataUpdateCoordinator] = {}
+        self.coordinators: Dict[str, RenaultDataUpdateCoordinator] = {}
         self.hvac_target_temperature = 21
 
     @property
@@ -64,7 +63,7 @@ class RenaultVehicleProxy:
             "sw_version": self.model_code,
         }
 
-        self.coordinators["cockpit"] = DataUpdateCoordinator(
+        self.coordinators["cockpit"] = RenaultDataUpdateCoordinator(
             self.hass,
             LOGGER,
             # Name of the data. For logging purposes.
@@ -73,7 +72,7 @@ class RenaultVehicleProxy:
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=LONG_SCAN_INTERVAL,
         )
-        self.coordinators["hvac_status"] = DataUpdateCoordinator(
+        self.coordinators["hvac_status"] = RenaultDataUpdateCoordinator(
             self.hass,
             LOGGER,
             # Name of the data. For logging purposes.
@@ -83,7 +82,7 @@ class RenaultVehicleProxy:
             update_interval=DEFAULT_SCAN_INTERVAL,
         )
         if self._vehicle_link.get_details().get_energy_code() == EnergyCode.ELECTRIQUE:
-            self.coordinators["battery"] = DataUpdateCoordinator(
+            self.coordinators["battery"] = RenaultDataUpdateCoordinator(
                 self.hass,
                 LOGGER,
                 # Name of the data. For logging purposes.
@@ -92,7 +91,7 @@ class RenaultVehicleProxy:
                 # Polling interval. Will only be polled if there are subscribers.
                 update_interval=DEFAULT_SCAN_INTERVAL,
             )
-            self.coordinators["charge_mode"] = DataUpdateCoordinator(
+            self.coordinators["charge_mode"] = RenaultDataUpdateCoordinator(
                 self.hass,
                 LOGGER,
                 # Name of the data. For logging purposes.
@@ -101,60 +100,45 @@ class RenaultVehicleProxy:
                 # Polling interval. Will only be polled if there are subscribers.
                 update_interval=DEFAULT_SCAN_INTERVAL,
             )
-        if self.model_code in MODEL_SUPPORTS_LOCATION:
-            coordinator = DataUpdateCoordinator(
-                self.hass,
-                LOGGER,
-                # Name of the data. For logging purposes.
-                name=f"{self.vin} location",
-                update_method=self.get_location,
-                # Polling interval. Will only be polled if there are subscribers.
-                update_interval=DEFAULT_SCAN_INTERVAL,
-            )
-        for coordinator in self.coordinators.values():
-            await coordinator.async_refresh()
+        self.coordinators["location"] = RenaultDataUpdateCoordinator(
+            self.hass,
+            LOGGER,
+            # Name of the data. For logging purposes.
+            name=f"{self.vin} location",
+            update_method=self.get_location,
+            # Polling interval. Will only be polled if there are subscribers.
+            update_interval=DEFAULT_SCAN_INTERVAL,
+        )
+        for key in list(self.coordinators.keys()):
+            await self.coordinators[key].async_refresh()
+            if self.coordinators[key].not_supported:
+                del self.coordinators[key]
+            elif self.coordinators[key].access_denied:
+                del self.coordinators[key]
 
-    async def get_battery_status(self, ignore_errors: bool = None):
+    async def get_battery_status(self):
         """Get battery_status."""
-        try:
-            return await self._vehicle.get_battery_status()
-        except KamereonResponseException as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+        return await self._vehicle.get_battery_status()
 
-    async def get_charge_mode(self, ignore_errors: bool = None):
+    async def get_charge_mode(self):
         """Get charge_mode."""
-        try:
-            return await self._vehicle.get_charge_mode()
-        except KamereonResponseException as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+        return await self._vehicle.get_charge_mode()
 
-    async def get_charge_schedules(self, ignore_errors: bool = None):
+    async def get_charge_schedules(self):
         """Get charge schedules."""
-        try:
-            return await self._vehicle.get_charging_settings()
-        except KamereonResponseException as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+        return await self._vehicle.get_charging_settings()
 
-    async def get_hvac_status(self, ignore_errors: bool = None):
+    async def get_hvac_status(self):
         """Get hvac_status."""
-        try:
-            return await self._vehicle.get_hvac_status()
-        except KamereonResponseException as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+        return await self._vehicle.get_hvac_status()
 
-    async def get_location(self, ignore_errors: bool = None):
+    async def get_location(self):
         """Get location."""
-        try:
-            return await self._vehicle.get_location()
-        except KamereonResponseException as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+        return await self._vehicle.get_location()
 
-    async def get_cockpit(self, ignore_errors: bool = None):
+    async def get_cockpit(self):
         """Get cockpit."""
-        try:
-            return await self._vehicle.get_cockpit()
-        except KamereonResponseException as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+        return await self._vehicle.get_cockpit()
 
     async def send_ac_start(self, temperature, when=None):
         """Start A/C."""
