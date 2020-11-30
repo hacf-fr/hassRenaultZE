@@ -9,7 +9,11 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from renault_api.kamereon.exceptions import KamereonResponseException
+from renault_api.kamereon.exceptions import (
+    AccessDeniedException,
+    KamereonResponseException,
+    NotSupportedException,
+)
 
 DEFAULT_SCAN_INTERVAL = timedelta(minutes=5)
 LONG_SCAN_INTERVAL = timedelta(minutes=10)
@@ -31,18 +35,18 @@ class RenaultDataUpdateCoordinator(DataUpdateCoordinator):
             raise NotImplementedError("Update method not implemented")
         try:
             return await self.update_method()
+        except AccessDeniedException as err:
+            # Disable because the account is not allowed to access this Renault endpoint.
+            self.update_interval = None
+            self.access_denied = True
+            raise UpdateFailed(f"This endpoint has been disabled: {err}")
+
+        except NotSupportedException as err:
+            # Disable because the vehicle does not support this Renault endpoint.
+            self.update_interval = None
+            self.not_supported = True
+            raise UpdateFailed(f"This endpoint has been disabled: {err}")
+
         except KamereonResponseException as err:
-            if (
-                err.error_code == ["err.func.403"]
-                and err.error_details == "Access is denied for this resource"
-            ):
-                self.update_interval = None
-                self.access_denied = True
-            elif (
-                err.error_code == ["err.tech.501"]
-                and err.error_details
-                == "This feature is not technically supported by this gateway"
-            ):
-                self.update_interval = None
-                self.not_supported = True
+            # Other Renault errors.
             raise UpdateFailed(f"Error communicating with API: {err}")
