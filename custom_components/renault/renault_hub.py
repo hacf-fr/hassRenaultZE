@@ -34,7 +34,7 @@ class RenaultHub:
     async def attempt_login(self, username: str, password: str) -> bool:
         """Attempt login to Renault servers."""
         try:
-            await self._client.login(username, password)
+            await self._client.session.login(username, password)
         except GigyaResponseException as ex:
             LOGGER.error("Login to Renault failed: %s", ex.error_details)
         else:

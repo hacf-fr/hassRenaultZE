@@ -2,7 +2,7 @@
 import logging
 from typing import Dict
 
-from renault_api.kamereon.models import ChargeMode
+from renault_api.kamereon.enums import ChargeMode
 import requests
 import voluptuous as vol
 

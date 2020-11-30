@@ -50,7 +50,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
     entities = await get_entities(hass, proxy)
     proxy.entities.extend(entities)
-    async_add_entities(entities)
+    async_add_entities(entities, False)
 
 
 async def get_entities(hass, proxy: RenaultHub) -> List[RenaultDataEntity]:
