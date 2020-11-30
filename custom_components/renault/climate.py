@@ -105,4 +105,4 @@ class RenaultHVACController(RenaultHVACDataEntity, ClimateEntity):
         if hvac_mode == HVAC_MODE_OFF:
             await self.proxy.send_cancel_ac()
         elif hvac_mode == HVAC_MODE_HEAT_COOL:
-            await self.proxy.send_ac_start(None, self.proxy.hvac_target_temperature)
+            await self.proxy.send_ac_start(self.proxy.hvac_target_temperature)
