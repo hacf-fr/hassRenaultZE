@@ -10,6 +10,8 @@ from homeassistant.const import (
     PERCENTAGE,
     POWER_KILO_WATT,
     TEMP_CELSIUS,
+    VOLUME_GALLONS,
+    VOLUME_LITERS,
 )
 from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.util import slugify
@@ -18,7 +20,6 @@ from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
 from .const import (
     DOMAIN,
-    MODEL_USES_KWH,
     DEVICE_CLASS_PLUG_STATE,
     DEVICE_CLASS_CHARGE_STATE,
 )
@@ -114,10 +115,7 @@ class RenaultBatteryLevelSensor(RenaultBatteryDataEntity):
     @property
     def icon(self):
         """Icon handling."""
-        if self.data.chargingStatus is not None:  # Zero can be a valid value
-            charging = self.data.get_charging_status() == ChargeState.CHARGE_IN_PROGRESS
-        else:
-            charging = False
+        charging = self.data.get_charging_status() == ChargeState.CHARGE_IN_PROGRESS
         return icon_for_battery_level(battery_level=self.state, charging=charging)
 
     @property
@@ -178,7 +176,7 @@ class RenaultChargingPowerSensor(RenaultBatteryDataEntity):
         """Return the state of this entity."""
         result = self.data.chargingInstantaneousPower
         if result is not None:  # Zero can be a valid value
-            if self.proxy.model_code not in MODEL_USES_KWH:
+            if self.proxy.vehicle_details.reports_charging_power_in_watts():
                 result = result / 1000
         return result
 
@@ -286,8 +284,8 @@ class RenaultFuelQuantitySensor(RenaultCockpitDataEntity):
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity."""
         if not self.hass.config.units.is_metric:
-            return LENGTH_MILES
-        return LENGTH_KILOMETERS
+            return VOLUME_GALLONS
+        return VOLUME_LITERS
 
 
 class RenaultMileageSensor(RenaultCockpitDataEntity):
