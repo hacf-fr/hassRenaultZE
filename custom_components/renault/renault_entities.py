@@ -1,4 +1,5 @@
 """Base classes for Renault entities."""
+from typing import Any, Dict
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
@@ -20,32 +21,38 @@ class RenaultDataEntity(CoordinatorEntity, Entity):
 
     def __init__(
         self, proxy: RenaultVehicleProxy, entity_type: str, coordinator_key: str
-    ):
+    ) -> None:
         """Initialise entity."""
         super().__init__(proxy.coordinators[coordinator_key])
         self.proxy = proxy
         self._entity_type = entity_type
 
     @property
-    def device_info(self):
+    def device_info(self) -> Dict[str, Any]:
         """Return a device description for device registry."""
         return self.proxy.device_info
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return a unique identifier for this entity."""
         return slugify(f"{self.proxy.vin}-{self._entity_type}")
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of this entity."""
         return f"{self.proxy.vin}-{self._entity_type}"
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        # Data can succeed, but be empty
+        return self.coordinator.last_update_success and self.coordinator.data
 
 
 class RenaultBatteryDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with battery coordinator."""
 
-    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str) -> None:
         """Initialise entity."""
         super().__init__(proxy, entity_type, "battery")
 
@@ -54,7 +61,7 @@ class RenaultBatteryDataEntity(RenaultDataEntity):
         return self.coordinator.data
 
     @property
-    def device_state_attributes(self):
+    def device_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes of this entity."""
         attrs = {}
         if "timestamp" in self.data.raw_data:
@@ -65,7 +72,7 @@ class RenaultBatteryDataEntity(RenaultDataEntity):
 class RenaultChargeModeDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with charge_mode coordinator."""
 
-    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str) -> None:
         """Initialise entity."""
         super().__init__(proxy, entity_type, "charge_mode")
 
@@ -77,7 +84,7 @@ class RenaultChargeModeDataEntity(RenaultDataEntity):
 class RenaultHVACDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with hvac_status coordinator."""
 
-    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str) -> None:
         """Initialise entity."""
         super().__init__(proxy, entity_type, "hvac_status")
 
@@ -89,7 +96,7 @@ class RenaultHVACDataEntity(RenaultDataEntity):
 class RenaultLocationDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with location coordinator."""
 
-    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str) -> None:
         """Initialise entity."""
         super().__init__(proxy, entity_type, "location")
 
@@ -98,7 +105,7 @@ class RenaultLocationDataEntity(RenaultDataEntity):
         return self.coordinator.data
 
     @property
-    def device_state_attributes(self):
+    def device_state_attributes(self) -> Dict[str, Any]:
         """Return the device state attributes."""
         attrs = {}
         if "lastUpdateTime" in self.data.raw_data:
@@ -109,7 +116,7 @@ class RenaultLocationDataEntity(RenaultDataEntity):
 class RenaultCockpitDataEntity(RenaultDataEntity):
     """Implementation of a Renault entity with cockpit coordinator."""
 
-    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str):
+    def __init__(self, proxy: RenaultVehicleProxy, entity_type: str) -> None:
         """Initialise entity."""
         super().__init__(proxy, entity_type, "cockpit")
 
