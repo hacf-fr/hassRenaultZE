@@ -2,7 +2,7 @@
 import logging
 from typing import List
 
-from renault_api.kamereon.enums import ChargeState, EnergyCode, PlugState
+from renault_api.kamereon.enums import ChargeState, PlugState
 
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
@@ -70,7 +70,7 @@ async def get_vehicle_entities(
     entities = []
     if "cockpit" in vehicle_proxy.coordinators:
         entities.append(RenaultMileageSensor(vehicle_proxy, "Mileage"))
-        if vehicle_proxy.vehicle_details.get_energy_code() == EnergyCode.ESSENCE:
+        if vehicle_proxy.vehicle_details.uses_fuel():
             entities.append(RenaultFuelAutonomySensor(vehicle_proxy, "Fuel Autonomy"))
             entities.append(RenaultFuelQuantitySensor(vehicle_proxy, "Fuel Quantity"))
     if "hvac_status" in vehicle_proxy.coordinators:

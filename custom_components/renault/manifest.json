@@ -5,7 +5,7 @@
   "documentation": "https://github.com/hacf-fr/hassRenaultZE",
   "issue_tracker": "https://github.com/hacf-fr/hassRenaultZE/issues",
   "requirements": [
-    "git+https://github.com/hacf-fr/renault-api.git@session-provider#caa4f1e07044805b18daf3541ff2c31142c551c8"
+    "git+https://github.com/hacf-fr/renault-api.git@session-provider#1e48d0038b3e2bece4ed476e080271f1caa0d36f"
   ],
   "codeowners": [
     "@epenet"

@@ -2,7 +2,6 @@
 from datetime import timedelta
 import logging
 from typing import Dict
-from renault_api.kamereon.enums import EnergyCode
 
 from renault_api.kamereon.models import KamereonVehiclesDetails, KamereonVehiclesLink
 from renault_api.renault_vehicle import RenaultVehicle
@@ -84,7 +83,7 @@ class RenaultVehicleProxy:
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=DEFAULT_SCAN_INTERVAL,
         )
-        if self._vehicle_link.vehicleDetails.get_energy_code() == EnergyCode.ELECTRIQUE:
+        if self._vehicle_link.vehicleDetails.uses_electricity():
             self.coordinators["battery"] = RenaultDataUpdateCoordinator(
                 self.hass,
                 LOGGER,
