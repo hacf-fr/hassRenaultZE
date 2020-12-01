@@ -9,7 +9,6 @@ from .services import async_setup_services, async_unload_services
 
 async def async_setup(hass, config):
     """Set up renault integrations."""
-    hass.data.setdefault(DOMAIN, {})
     return True
 
 
