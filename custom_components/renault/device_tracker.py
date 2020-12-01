@@ -51,13 +51,11 @@ class RenaultLocationSensor(RenaultLocationDataEntity, TrackerEntity):
     @property
     def latitude(self) -> float:
         """Return latitude value of the device."""
-        # return self.data.gpsLatitude
         return self.data.gpsLatitude
 
     @property
     def longitude(self) -> float:
         """Return longitude value of the device."""
-        # return self.data.gpsLongitude
         return self.data.gpsLongitude
 
     @property
