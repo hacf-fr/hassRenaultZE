@@ -1,6 +1,6 @@
 """Support for Renault sensors."""
 import logging
-from typing import List
+from typing import List, Optional
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
@@ -22,11 +22,7 @@ LOGGER = logging.getLogger(__name__)
 SUPPORT_HVAC = [HVAC_MODE_HEAT_COOL, HVAC_MODE_OFF]
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Old way of setting up platforms."""
-
-
-async def async_setup_entry(hass, config_entry, async_add_entities):
+async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
     """Set up the Renault entities from config entry."""
     proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
     entities: List[RenaultDataEntity] = await get_entities(proxy)
@@ -57,12 +53,13 @@ class RenaultHVACController(RenaultHVACDataEntity, ClimateEntity):
     """HVAC controller."""
 
     @property
-    def hvac_mode(self) -> str:
+    def hvac_mode(self) -> Optional[str]:
         """Return hvac current operation mode."""
-        if self.data.hvacStatus:
-            if self.data.hvacStatus == "off":
-                return HVAC_MODE_OFF
-            return HVAC_MODE_HEAT_COOL
+        if self.data.hvacStatus is None:
+            return None
+        if self.data.hvacStatus == "off":
+            return HVAC_MODE_OFF
+        return HVAC_MODE_HEAT_COOL
 
     @property
     def hvac_modes(self) -> List[str]:
@@ -80,26 +77,18 @@ class RenaultHVACController(RenaultHVACDataEntity, ClimateEntity):
         return TEMP_CELSIUS
 
     @property
-    def current_temperature(self):
-        """Return the current temperature.
-
-        Not available for this platform.
-        """
-        return None
-
-    @property
-    def target_temperature(self):
+    def target_temperature(self) -> int:
         """Return the temperature we try to reach."""
         return self.proxy.hvac_target_temperature
 
-    async def async_set_temperature(self, **kwargs):
+    async def async_set_temperature(self, **kwargs) -> None:
         """Set new target temperatures."""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature:
             LOGGER.debug("%s: Setting temperature to %s", self.name, temperature)
             self.proxy.hvac_target_temperature = temperature
 
-    async def async_set_hvac_mode(self, hvac_mode):
+    async def async_set_hvac_mode(self, hvac_mode) -> None:
         """Set new target hvac mode."""
         LOGGER.debug("%s: Setting hvac mode to %s", self.name, hvac_mode)
         if hvac_mode == HVAC_MODE_OFF:

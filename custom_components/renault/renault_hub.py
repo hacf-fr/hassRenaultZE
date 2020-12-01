@@ -50,7 +50,7 @@ class RenaultHub:
             # Generate vehicle proxy
             await self.get_vehicle(vehicle_link)
 
-    async def get_account_ids(self) -> list:
+    async def get_account_ids(self) -> List[str]:
         """Get Kamereon account ids."""
         accounts = []
         for account in await self._client.get_api_accounts():
@@ -58,7 +58,7 @@ class RenaultHub:
 
             # Skip the account if no vehicles found in it.
             if len(vehicles.vehicleLinks) > 0:
-                accounts.append(account._account_id)
+                accounts.append(account.account_id)
         return accounts
 
     def get_vehicle_links(self) -> List[KamereonVehiclesLink]:

@@ -1,6 +1,6 @@
 """Support for Renault sensors."""
 import logging
-from typing import List
+from typing import List, Optional
 
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_PLUG,
@@ -15,10 +15,6 @@ from .renault_vehicle import RenaultVehicleProxy
 from .renault_entities import RenaultBatteryDataEntity, RenaultDataEntity
 
 LOGGER = logging.getLogger(__name__)
-
-
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Old way of setting up platforms."""
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -53,20 +49,23 @@ class RenaultPluggedInSensor(RenaultBatteryDataEntity, BinarySensorEntity):
     """Plugged In sensor."""
 
     @property
-    def is_on(self):
+    def is_on(self) -> Optional[bool]:
         """Return true if the binary sensor is on."""
-        if self.data.plugStatus is not None:  # Zero can be a valid value
-            return self.data.get_plug_status() == PlugState.PLUGGED
+        return (
+            self.data.get_plug_status() == PlugState.PLUGGED
+            if self.data.plugStatus is not None
+            else None
+        )
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Icon handling."""
         if self.is_on:
             return "mdi:power-plug"
         return "mdi:power-plug-off"
 
     @property
-    def device_class(self):
+    def device_class(self) -> str:
         """Returning binary sensor device class"""
         return DEVICE_CLASS_PLUG
 
@@ -75,19 +74,22 @@ class RenaultChargingSensor(RenaultBatteryDataEntity, BinarySensorEntity):
     """Charging sensor."""
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        if self.data.chargingStatus is not None:  # Zero can be a valid value
-            return self.data.get_charging_status() == ChargeState.CHARGE_IN_PROGRESS
+        return (
+            self.data.get_charging_status() == ChargeState.CHARGE_IN_PROGRESS
+            if self.data.chargingStatus is not None
+            else None
+        )
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Icon handling."""
         if self.is_on:
             return "mdi:flash"
         return "mdi:flash-off"
 
     @property
-    def device_class(self):
+    def device_class(self) -> str:
         """Returning binary sensor device class"""
         return DEVICE_CLASS_BATTERY_CHARGING

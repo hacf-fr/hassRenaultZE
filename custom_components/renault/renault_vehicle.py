@@ -1,9 +1,18 @@
 """Proxy to handle account communication with Renault servers."""
 from datetime import timedelta
 import logging
-from typing import Dict
+from typing import Any, Dict
 
-from renault_api.kamereon.models import KamereonVehiclesDetails, KamereonVehiclesLink
+from renault_api.kamereon.models import (
+    KamereonVehicleBatteryStatusData,
+    KamereonVehicleChargeModeData,
+    KamereonVehicleChargingSettingsData,
+    KamereonVehicleCockpitData,
+    KamereonVehicleHvacStatusData,
+    KamereonVehicleLocationData,
+    KamereonVehiclesDetails,
+    KamereonVehiclesLink,
+)
 from renault_api.renault_vehicle import RenaultVehicle
 
 from .renault_coordinator import RenaultDataUpdateCoordinator
@@ -21,7 +30,7 @@ class RenaultVehicleProxy:
 
     def __init__(
         self, hass, vehicle_link: KamereonVehiclesLink, vehicle: RenaultVehicle
-    ):
+    ) -> None:
         """Initialise vehicle proxy."""
         self.hass = hass
         self._vehicle_link = vehicle_link
@@ -36,7 +45,7 @@ class RenaultVehicleProxy:
         return self._vehicle_link.vehicleDetails
 
     @property
-    def device_info(self):
+    def device_info(self) -> Dict[str, Any]:
         """Return a device description for device registry."""
         return self._device_info
 
@@ -55,7 +64,7 @@ class RenaultVehicleProxy:
         """Return the VIN of the vehicle."""
         return self._vehicle_link.vin
 
-    async def async_initialise(self):
+    async def async_initialise(self) -> None:
         """Load available sensors."""
         self._device_info = {
             "identifiers": {(DOMAIN, self.vin)},
@@ -114,50 +123,52 @@ class RenaultVehicleProxy:
         for key in list(self.coordinators.keys()):
             await self.coordinators[key].async_refresh()
             if self.coordinators[key].not_supported:
+                # Remove endpoint if it is not supported for this vehicle.
                 del self.coordinators[key]
             elif self.coordinators[key].access_denied:
+                # Remove endpoint if it is denied for this vehicle.
                 del self.coordinators[key]
 
-    async def get_battery_status(self):
+    async def get_battery_status(self) -> KamereonVehicleBatteryStatusData:
         """Get battery_status."""
         return await self._vehicle.get_battery_status()
 
-    async def get_charge_mode(self):
+    async def get_charge_mode(self) -> KamereonVehicleChargeModeData:
         """Get charge_mode."""
         return await self._vehicle.get_charge_mode()
 
-    async def get_charge_schedules(self):
-        """Get charge schedules."""
+    async def get_charging_settings(self) -> KamereonVehicleChargingSettingsData:
+        """Get charging settings."""
         return await self._vehicle.get_charging_settings()
 
-    async def get_hvac_status(self):
+    async def get_hvac_status(self) -> KamereonVehicleHvacStatusData:
         """Get hvac_status."""
         return await self._vehicle.get_hvac_status()
 
-    async def get_location(self):
+    async def get_location(self) -> KamereonVehicleLocationData:
         """Get location."""
         return await self._vehicle.get_location()
 
-    async def get_cockpit(self):
+    async def get_cockpit(self) -> KamereonVehicleCockpitData:
         """Get cockpit."""
         return await self._vehicle.get_cockpit()
 
-    async def send_ac_start(self, temperature, when=None):
+    async def send_ac_start(self, temperature, when=None) -> None:
         """Start A/C."""
         return await self._vehicle.set_ac_start(temperature, when)
 
-    async def send_cancel_ac(self):
+    async def send_cancel_ac(self) -> None:
         """Cancel A/C."""
         return await self._vehicle.set_ac_stop()
 
-    async def send_set_charge_mode(self, charge_mode):
+    async def send_set_charge_mode(self, charge_mode) -> None:
         """Set charge mode."""
         return await self._vehicle.set_charge_mode(charge_mode)
 
-    async def send_charge_start(self):
+    async def send_charge_start(self) -> None:
         """Start charge."""
         return await self._vehicle.set_charge_start()
 
-    async def send_set_charge_schedules(self, schedules):
+    async def send_set_charge_schedules(self, schedules) -> None:
         """Set charge schedules."""
         return await self._vehicle.set_charge_schedules(schedules)

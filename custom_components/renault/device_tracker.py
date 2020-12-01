@@ -1,6 +1,6 @@
 """Device tracker for Renault vehicles."""
 import logging
-from typing import List
+from typing import List, Optional
 
 from homeassistant.components.device_tracker import SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
@@ -13,7 +13,7 @@ from .renault_entities import RenaultDataEntity, RenaultLocationDataEntity
 LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
+async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
     """Set up the Renault entities from config entry."""
     proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
     entities: List[RenaultDataEntity] = await get_entities(proxy)
@@ -44,21 +44,21 @@ class RenaultLocationSensor(RenaultLocationDataEntity, TrackerEntity):
     """Location sensor."""
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Icon handling."""
         return "mdi:car"
 
     @property
-    def latitude(self) -> float:
+    def latitude(self) -> Optional[float]:
         """Return latitude value of the device."""
         return self.data.gpsLatitude
 
     @property
-    def longitude(self) -> float:
+    def longitude(self) -> Optional[float]:
         """Return longitude value of the device."""
         return self.data.gpsLongitude
 
     @property
-    def source_type(self):
+    def source_type(self) -> str:
         """Return the source type of the device."""
         return SOURCE_TYPE_GPS

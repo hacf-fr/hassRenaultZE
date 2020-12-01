@@ -1,6 +1,6 @@
 """Support for Renault services."""
 import logging
-from typing import Dict
+from typing import Any, Dict
 
 from renault_api.kamereon.enums import ChargeMode
 import requests
@@ -58,7 +58,7 @@ SERVICE_CHARGE_START_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup_services(hass: HomeAssistantType):
+async def async_setup_services(hass: HomeAssistantType) -> None:
     """Register the Renault services."""
     _LOGGER.debug("Registering renault services")
 
@@ -67,7 +67,7 @@ async def async_setup_services(hass: HomeAssistantType):
 
     hass.data[RENAULT_SERVICES] = True
 
-    async def ac_start(service_call: Dict):
+    async def ac_start(service_call) -> None:
         """Start A/C."""
         try:
             when = service_call.data.get(SCHEMA_WHEN, None)
@@ -79,7 +79,7 @@ async def async_setup_services(hass: HomeAssistantType):
         except requests.exceptions.RequestException as err:
             _LOGGER.error("A/C start failed: %s", err)
 
-    async def ac_cancel(service_call: Dict):
+    async def ac_cancel(service_call) -> None:
         """Cancel A/C."""
         try:
             _LOGGER.debug("A/C cancel attempt.")
@@ -89,7 +89,7 @@ async def async_setup_services(hass: HomeAssistantType):
         except requests.exceptions.RequestException as err:
             _LOGGER.error("A/C cancel failed: %s", err)
 
-    async def charge_set_mode(service_call: Dict):
+    async def charge_set_mode(service_call) -> None:
         """Set charge mode."""
         # self, charge_mode):
         try:
@@ -101,7 +101,7 @@ async def async_setup_services(hass: HomeAssistantType):
         except requests.exceptions.RequestException as err:
             _LOGGER.error("Charge set mode failed: %s", err)
 
-    async def charge_start(service_call: Dict):
+    async def charge_start(service_call) -> None:
         """Start charge."""
         try:
             _LOGGER.debug("Charge start attempt.")
@@ -111,7 +111,7 @@ async def async_setup_services(hass: HomeAssistantType):
         except requests.exceptions.RequestException as err:
             _LOGGER.error("Charge start failed: %s", err)
 
-    async def charge_set_schedules(service_call: Dict):
+    async def charge_set_schedules(service_call) -> None:
         """Set charge schedules."""
         # self, schedules
         try:
@@ -129,7 +129,7 @@ async def async_setup_services(hass: HomeAssistantType):
         except requests.exceptions.RequestException as err:
             _LOGGER.error("Charge set schedules failed: %s", err)
 
-    def get_vehicle(service_call_data: Dict) -> RenaultVehicleProxy:
+    def get_vehicle(service_call_data: Dict[str, Any]) -> RenaultVehicleProxy:
         """Get vehicle from service_call data."""
         vin = service_call_data[SCHEMA_VIN]
         for proxy in hass.data[DOMAIN].values():
@@ -170,7 +170,7 @@ async def async_setup_services(hass: HomeAssistantType):
     )
 
 
-async def async_unload_services(hass: HomeAssistantType):
+async def async_unload_services(hass: HomeAssistantType) -> None:
     """Unload Renault services."""
     if not hass.data.get(RENAULT_SERVICES):
         return

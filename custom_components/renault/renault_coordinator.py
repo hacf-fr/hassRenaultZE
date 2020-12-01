@@ -24,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 class RenaultDataUpdateCoordinator(DataUpdateCoordinator):
     """Handle vehicle communication with Renault servers."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.access_denied = False
         self.not_supported = False
