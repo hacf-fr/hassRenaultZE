@@ -3,6 +3,7 @@ import logging
 from typing import Any, Dict
 
 from renault_api.kamereon.enums import ChargeMode
+from renault_api.kamereon.exceptions import KamereonResponseException
 import requests
 import voluptuous as vol
 
@@ -10,6 +11,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN, REGEX_VIN
+from .renault_hub import RenaultHub
 from .renault_vehicle import RenaultVehicleProxy
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,74 +71,82 @@ async def async_setup_services(hass: HomeAssistantType) -> None:
 
     async def ac_start(service_call) -> None:
         """Start A/C."""
+        service_call_data: Dict[str, Any] = service_call.data
+        when = service_call_data.get(SCHEMA_WHEN, None)
+        temperature = service_call_data.get(SCHEMA_TEMPERATURE, 21)
+        vehicle = get_vehicle(service_call_data)
+        _LOGGER.debug("A/C start attempt: %s / %s", when, temperature)
         try:
-            when = service_call.data.get(SCHEMA_WHEN, None)
-            temperature = service_call.data.get(SCHEMA_TEMPERATURE, 21)
-            _LOGGER.debug("A/C start attempt: %s / %s", when, temperature)
-            vehicle = get_vehicle(service_call.data)
-            jsonresult = await vehicle.send_ac_start(temperature=temperature, when=when)
-            _LOGGER.info("A/C start result: %s", jsonresult)
-        except requests.exceptions.RequestException as err:
+            result = await vehicle.send_ac_start(temperature=temperature, when=when)
+        except KamereonResponseException as err:
             _LOGGER.error("A/C start failed: %s", err)
+        else:
+            _LOGGER.info("A/C start result: %s", result.raw_data)
 
     async def ac_cancel(service_call) -> None:
         """Cancel A/C."""
+        service_call_data: Dict[str, Any] = service_call.data
+        vehicle = get_vehicle(service_call_data)
+        _LOGGER.debug("A/C cancel attempt.")
         try:
-            _LOGGER.debug("A/C cancel attempt.")
-            vehicle = get_vehicle(service_call.data)
-            jsonresult = await vehicle.send_cancel_ac()
-            _LOGGER.info("A/C cancel result: %s", jsonresult)
-        except requests.exceptions.RequestException as err:
+            result = await vehicle.send_cancel_ac()
+        except KamereonResponseException as err:
             _LOGGER.error("A/C cancel failed: %s", err)
+        else:
+            _LOGGER.info("A/C cancel result: %s", result)
 
     async def charge_set_mode(service_call) -> None:
         """Set charge mode."""
-        # self, charge_mode):
+        service_call_data: Dict[str, Any] = service_call.data
+        charge_mode = service_call_data.get(SCHEMA_CHARGE_MODE)
+        vehicle = get_vehicle(service_call_data)
+        _LOGGER.debug("Charge set mode attempt: %s", charge_mode)
         try:
-            charge_mode = service_call.data.get(SCHEMA_CHARGE_MODE)
-            _LOGGER.debug("Charge set mode attempt: %s", charge_mode)
-            vehicle = get_vehicle(service_call.data)
-            jsonresult = await vehicle.send_set_charge_mode(charge_mode)
-            _LOGGER.info("Charge set mode result: %s", jsonresult)
-        except requests.exceptions.RequestException as err:
+            result = await vehicle.send_set_charge_mode(charge_mode)
+        except KamereonResponseException as err:
             _LOGGER.error("Charge set mode failed: %s", err)
+        else:
+            _LOGGER.info("Charge set mode result: %s", result)
 
     async def charge_start(service_call) -> None:
         """Start charge."""
+        service_call_data: Dict[str, Any] = service_call.data
+        vehicle = get_vehicle(service_call_data)
+        _LOGGER.debug("Charge start attempt.")
         try:
-            _LOGGER.debug("Charge start attempt.")
-            vehicle = get_vehicle(service_call.data)
-            jsonresult = await vehicle.send_charge_start()
-            _LOGGER.info("Charge start result: %s", jsonresult)
-        except requests.exceptions.RequestException as err:
+            result = await vehicle.send_charge_start()
+        except KamereonResponseException as err:
             _LOGGER.error("Charge start failed: %s", err)
+        else:
+            _LOGGER.info("Charge start result: %s", result)
 
     async def charge_set_schedules(service_call) -> None:
         """Set charge schedules."""
-        # self, schedules
+        service_call_data: Dict[str, Any] = service_call.data
+        schedules = service_call_data.get(SCHEMA_SCHEDULES)
+        vehicle = get_vehicle(service_call_data)
+        charge_schedules = await vehicle.get_charging_settings()
+        charge_schedules.update(schedules)
         try:
-            schedules = service_call.data.get(SCHEMA_SCHEDULES)
             _LOGGER.debug("Charge set schedules attempt: %s", schedules)
-            vehicle = get_vehicle(service_call.data)
-            charge_schedules = await vehicle.get_charge_schedules()
-            charge_schedules.update(schedules)
-
-            jsonresult = await vehicle.send_set_charge_schedules(charge_schedules)
-            _LOGGER.info("Charge set schedules result: %s", jsonresult)
+            result = await vehicle.send_set_charge_schedules(charge_schedules)
+        except KamereonResponseException as err:
+            _LOGGER.error("Charge set schedules failed: %s", err)
+        else:
+            _LOGGER.info("Charge set schedules result: %s", result)
             _LOGGER.info(
                 "It may take some time before these changes are reflected in your vehicle."
             )
-        except requests.exceptions.RequestException as err:
-            _LOGGER.error("Charge set schedules failed: %s", err)
 
     def get_vehicle(service_call_data: Dict[str, Any]) -> RenaultVehicleProxy:
         """Get vehicle from service_call data."""
-        vin = service_call_data[SCHEMA_VIN]
+        vin: str = service_call_data[SCHEMA_VIN]
+        proxy: RenaultHub
         for proxy in hass.data[DOMAIN].values():
-            vehicle = proxy.get_vehicle_from_vin(vin)
+            vehicle = proxy.vehicles.get(vin)
             if vehicle is not None:
                 return vehicle
-        raise ValueError(f"Unable to load vehicle with VIN: {vin}")
+        raise ValueError(f"Unable to find vehicle with VIN: {vin}")
 
     hass.services.async_register(
         DOMAIN,

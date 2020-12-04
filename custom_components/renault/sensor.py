@@ -1,93 +1,80 @@
 """Support for Renault sensors."""
-import logging
 from typing import Any, Dict, List, Optional
-from homeassistant.helpers.typing import StateType
 
 from renault_api.kamereon.enums import ChargeState, PlugState
 
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_TEMPERATURE,
+    LENGTH_KILOMETERS,
+    LENGTH_MILES,
     PERCENTAGE,
     POWER_KILO_WATT,
     TEMP_CELSIUS,
     VOLUME_GALLONS,
     VOLUME_LITERS,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.icon import icon_for_battery_level
+from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import slugify
-from homeassistant.util.distance import LENGTH_KILOMETERS, LENGTH_MILES
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
-from .const import (
-    DOMAIN,
-    DEVICE_CLASS_PLUG_STATE,
-    DEVICE_CLASS_CHARGE_STATE,
-)
-from .renault_hub import RenaultHub
-from .renault_vehicle import RenaultVehicleProxy
+from .const import DOMAIN, DEVICE_CLASS_PLUG_STATE, DEVICE_CLASS_CHARGE_STATE
 from .renault_entities import (
     RenaultBatteryDataEntity,
     RenaultChargeModeDataEntity,
+    RenaultCockpitDataEntity,
     RenaultDataEntity,
     RenaultHVACDataEntity,
-    RenaultCockpitDataEntity,
 )
+from .renault_hub import RenaultHub
+from .renault_vehicle import RenaultVehicleProxy
 
 ATTR_BATTERY_AVAILABLE_ENERGY = "battery_available_energy"
-ATTR_CHARGING_POWER = "charging_power"
-ATTR_CHARGING_REMAINING_TIME = "charging_remaining_time"
-ATTR_PLUGGED = "plugged"
-ATTR_PLUG_STATUS = "plug_status"
-
-LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    config_entry: ConfigEntry,
+    async_add_entities,
+) -> None:
     """Set up the Renault entities from config entry."""
     proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
-    entities = await get_entities(hass, proxy)
-    proxy.entities.extend(entities)
+    entities = await get_entities(proxy)
     async_add_entities(entities)
 
 
-async def get_entities(hass, proxy: RenaultHub) -> List[RenaultDataEntity]:
+async def get_entities(proxy: RenaultHub) -> List[RenaultDataEntity]:
     """Create Renault entities for all vehicles."""
     entities = []
-    for vehicle_link in proxy.get_vehicle_links():
-        vehicle_proxy = await proxy.get_vehicle(vehicle_link)
-        entities.extend(await get_vehicle_entities(hass, vehicle_proxy))
+    for vehicle in proxy.vehicles.values():
+        entities.extend(await get_vehicle_entities(vehicle))
     return entities
 
 
-async def get_vehicle_entities(
-    hass, vehicle_proxy: RenaultVehicleProxy
-) -> List[RenaultDataEntity]:
+async def get_vehicle_entities(vehicle: RenaultVehicleProxy) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
     entities = []
-    if "cockpit" in vehicle_proxy.coordinators:
-        entities.append(RenaultMileageSensor(vehicle_proxy, "Mileage"))
-        if vehicle_proxy.vehicle_details.uses_fuel():
-            entities.append(RenaultFuelAutonomySensor(vehicle_proxy, "Fuel Autonomy"))
-            entities.append(RenaultFuelQuantitySensor(vehicle_proxy, "Fuel Quantity"))
-    if "hvac_status" in vehicle_proxy.coordinators:
+    if "cockpit" in vehicle.coordinators.keys():
+        entities.append(RenaultMileageSensor(vehicle, "Mileage"))
+        if vehicle.details.uses_fuel():
+            entities.append(RenaultFuelAutonomySensor(vehicle, "Fuel Autonomy"))
+            entities.append(RenaultFuelQuantitySensor(vehicle, "Fuel Quantity"))
+    if "hvac_status" in vehicle.coordinators:
+        entities.append(RenaultOutsideTemperatureSensor(vehicle, "Outside Temperature"))
+    if "battery" in vehicle.coordinators:
+        entities.append(RenaultBatteryLevelSensor(vehicle, "Battery Level"))
+        entities.append(RenaultChargeStateSensor(vehicle, "Charge State"))
         entities.append(
-            RenaultOutsideTemperatureSensor(vehicle_proxy, "Outside Temperature")
+            RenaultChargingRemainingTimeSensor(vehicle, "Charging Remaining Time")
         )
-    if "battery" in vehicle_proxy.coordinators:
-        entities.append(RenaultBatteryLevelSensor(vehicle_proxy, "Battery Level"))
-        entities.append(RenaultChargeStateSensor(vehicle_proxy, "Charge State"))
-        entities.append(
-            RenaultChargingRemainingTimeSensor(vehicle_proxy, "Charging Remaining Time")
-        )
-        entities.append(RenaultChargingPowerSensor(vehicle_proxy, "Charging Power"))
-        entities.append(RenaultPlugStateSensor(vehicle_proxy, "Plug State"))
-        entities.append(RenaultBatteryAutonomySensor(vehicle_proxy, "Battery Autonomy"))
-        entities.append(
-            RenaultBatteryTemperatureSensor(vehicle_proxy, "Battery Temperature")
-        )
-    if "charge_mode" in vehicle_proxy.coordinators:
-        entities.append(RenaultChargeModeSensor(vehicle_proxy, "Charge Mode"))
+        entities.append(RenaultChargingPowerSensor(vehicle, "Charging Power"))
+        entities.append(RenaultPlugStateSensor(vehicle, "Plug State"))
+        entities.append(RenaultBatteryAutonomySensor(vehicle, "Battery Autonomy"))
+        entities.append(RenaultBatteryTemperatureSensor(vehicle, "Battery Temperature"))
+    if "charge_mode" in vehicle.coordinators:
+        entities.append(RenaultChargeModeSensor(vehicle, "Charge Mode"))
     return entities
 
 
@@ -120,10 +107,8 @@ class RenaultBatteryLevelSensor(RenaultBatteryDataEntity):
         """Return the state attributes of this entity."""
         attrs = {}
         attrs.update(super().device_state_attributes)
-        if "batteryAvailableEnergy" in self.data.raw_data:
-            attrs[ATTR_BATTERY_AVAILABLE_ENERGY] = self.data.raw_data[
-                "batteryAvailableEnergy"
-            ]
+        if self.data.batteryAvailableEnergy is not None:
+            attrs[ATTR_BATTERY_AVAILABLE_ENERGY] = self.data.batteryAvailableEnergy
         return attrs
 
 
@@ -176,7 +161,8 @@ class RenaultChargingPowerSensor(RenaultBatteryDataEntity):
         """Return the state of this entity."""
         if self.data.chargingInstantaneousPower is None:
             return None
-        if self.proxy.vehicle_details.reports_charging_power_in_watts():
+        if self.vehicle.details.reports_charging_power_in_watts():
+            # Need to convert to kilowatts
             return self.data.chargingInstantaneousPower / 1000
         return self.data.chargingInstantaneousPower
 

@@ -2,15 +2,13 @@
 import logging
 from typing import Dict, List, Optional
 
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.typing import HomeAssistantType
-
-from renault_api.gigya.exceptions import GigyaResponseException
-from renault_api.kamereon.models import KamereonVehiclesLink
+from renault_api.gigya.exceptions import InvalidCredentialsException
 from renault_api.renault_account import RenaultAccount
 from renault_api.renault_client import RenaultClient
 
-from .renault_entities import RenaultDataEntity
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.typing import HomeAssistantType
+
 from .renault_vehicle import RenaultVehicleProxy
 
 LOGGER = logging.getLogger(__name__)
@@ -27,15 +25,13 @@ class RenaultHub:
             websession=async_get_clientsession(self._hass), locale=locale
         )
         self._account: Optional[RenaultAccount] = None
-        self._vehicle_links: List[KamereonVehiclesLink] = []
-        self._vehicle_proxies: Dict[str, RenaultVehicleProxy] = {}
-        self.entities: List[RenaultDataEntity] = []
+        self._vehicles: Dict[str, RenaultVehicleProxy] = {}
 
     async def attempt_login(self, username: str, password: str) -> bool:
         """Attempt login to Renault servers."""
         try:
             await self._client.session.login(username, password)
-        except GigyaResponseException as ex:
+        except InvalidCredentialsException as ex:
             LOGGER.error("Login to Renault failed: %s", ex.error_details)
         else:
             return True
@@ -45,10 +41,16 @@ class RenaultHub:
         """Set up proxy."""
         self._account = await self._client.get_api_account(account_id)
         vehicles = await self._account.get_vehicles()
-        self._vehicle_links = vehicles.vehicleLinks
         for vehicle_link in vehicles.vehicleLinks:
             # Generate vehicle proxy
-            await self.get_vehicle(vehicle_link)
+            vin = vehicle_link.vin
+            vehicle = RenaultVehicleProxy(
+                self._hass,
+                await self._account.get_api_vehicle(vin),
+                vehicle_link.vehicleDetails,
+            )
+            await vehicle.async_initialise()
+            self._vehicles[vin] = vehicle
 
     async def get_account_ids(self) -> List[str]:
         """Get Kamereon account ids."""
@@ -56,31 +58,12 @@ class RenaultHub:
         for account in await self._client.get_api_accounts():
             vehicles = await account.get_vehicles()
 
-            # Skip the account if no vehicles found in it.
-            if len(vehicles.vehicleLinks) > 0:
+            # Only add the account if it has linked vehicles.
+            if vehicles.vehicleLinks:
                 accounts.append(account.account_id)
         return accounts
 
-    def get_vehicle_links(self) -> List[KamereonVehiclesLink]:
+    @property
+    def vehicles(self) -> Dict[str, RenaultVehicleProxy]:
         """Get list of vehicles."""
-        return self._vehicle_links
-
-    def get_vehicle_from_vin(self, vin: str) -> RenaultVehicleProxy:
-        """Get vehicle from VIN."""
-        return self._vehicle_proxies[vin]
-
-    async def get_vehicle(
-        self, vehicle_link: KamereonVehiclesLink
-    ) -> RenaultVehicleProxy:
-        """Get a proxy for the vehicle."""
-        vin = vehicle_link.vin
-        vehicle_proxy = self._vehicle_proxies.get(vin)
-        if vehicle_proxy is None:
-            vehicle_proxy = RenaultVehicleProxy(
-                self._hass,
-                vehicle_link,
-                await self._account.get_api_vehicle(vin),
-            )
-            await vehicle_proxy.async_initialise()
-            self._vehicle_proxies[vin] = vehicle_proxy
-        return self._vehicle_proxies[vin]
+        return self._vehicles

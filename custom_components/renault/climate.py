@@ -8,7 +8,9 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_OFF,
     SUPPORT_TARGET_TEMPERATURE,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
+from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN
 from .renault_hub import RenaultHub
@@ -22,30 +24,30 @@ LOGGER = logging.getLogger(__name__)
 SUPPORT_HVAC = [HVAC_MODE_HEAT_COOL, HVAC_MODE_OFF]
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    config_entry: ConfigEntry,
+    async_add_entities,
+) -> None:
     """Set up the Renault entities from config entry."""
     proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
     entities: List[RenaultDataEntity] = await get_entities(proxy)
-    proxy.entities.extend(entities)
     async_add_entities(entities)
 
 
 async def get_entities(proxy: RenaultHub) -> List[RenaultDataEntity]:
     """Create Renault entities for all vehicles."""
     entities: List[RenaultDataEntity] = []
-    for vehicle_link in proxy.get_vehicle_links():
-        vehicle_proxy = await proxy.get_vehicle(vehicle_link)
-        entities.extend(await get_vehicle_entities(vehicle_proxy))
+    for vehicle in proxy.vehicles.values():
+        entities.extend(await get_vehicle_entities(vehicle))
     return entities
 
 
-async def get_vehicle_entities(
-    vehicle_proxy: RenaultVehicleProxy,
-) -> List[RenaultDataEntity]:
+async def get_vehicle_entities(vehicle: RenaultVehicleProxy) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
     entities: List[RenaultDataEntity] = []
-    if "hvac_status" in vehicle_proxy.coordinators:
-        entities.append(RenaultHVACController(vehicle_proxy, "HVAC"))
+    if "hvac_status" in vehicle.coordinators:
+        entities.append(RenaultHVACController(vehicle, "HVAC"))
     return entities
 
 
@@ -79,19 +81,19 @@ class RenaultHVACController(RenaultHVACDataEntity, ClimateEntity):
     @property
     def target_temperature(self) -> int:
         """Return the temperature we try to reach."""
-        return self.proxy.hvac_target_temperature
+        return self.vehicle.hvac_target_temperature
 
     async def async_set_temperature(self, **kwargs) -> None:
         """Set new target temperatures."""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature:
             LOGGER.debug("%s: Setting temperature to %s", self.name, temperature)
-            self.proxy.hvac_target_temperature = temperature
+            self.vehicle.hvac_target_temperature = temperature
 
     async def async_set_hvac_mode(self, hvac_mode) -> None:
         """Set new target hvac mode."""
         LOGGER.debug("%s: Setting hvac mode to %s", self.name, hvac_mode)
         if hvac_mode == HVAC_MODE_OFF:
-            await self.proxy.send_cancel_ac()
+            await self.vehicle.send_cancel_ac()
         elif hvac_mode == HVAC_MODE_HEAT_COOL:
-            await self.proxy.send_ac_start(self.proxy.hvac_target_temperature)
+            await self.vehicle.send_ac_start(self.vehicle.hvac_target_temperature)

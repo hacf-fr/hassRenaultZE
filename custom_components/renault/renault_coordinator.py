@@ -1,6 +1,4 @@
 """Proxy to handle account communication with Renault servers."""
-from datetime import timedelta
-import logging
 from typing import Optional
 
 from homeassistant.helpers.update_coordinator import (
@@ -14,11 +12,6 @@ from renault_api.kamereon.exceptions import (
     KamereonResponseException,
     NotSupportedException,
 )
-
-DEFAULT_SCAN_INTERVAL = timedelta(minutes=5)
-LONG_SCAN_INTERVAL = timedelta(minutes=10)
-
-LOGGER = logging.getLogger(__name__)
 
 
 class RenaultDataUpdateCoordinator(DataUpdateCoordinator):

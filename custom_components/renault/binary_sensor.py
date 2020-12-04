@@ -1,47 +1,47 @@
 """Support for Renault sensors."""
-import logging
 from typing import List, Optional
+
+from renault_api.kamereon.enums import ChargeState, PlugState
 
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_PLUG,
     DEVICE_CLASS_BATTERY_CHARGING,
     BinarySensorEntity,
 )
-from renault_api.kamereon.enums import ChargeState, PlugState
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN
 from .renault_hub import RenaultHub
 from .renault_vehicle import RenaultVehicleProxy
 from .renault_entities import RenaultBatteryDataEntity, RenaultDataEntity
 
-LOGGER = logging.getLogger(__name__)
 
-
-async def async_setup_entry(hass, config_entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    config_entry: ConfigEntry,
+    async_add_entities,
+):
     """Set up the Renault entities from config entry."""
     proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
     entities: List[RenaultDataEntity] = await get_entities(proxy)
-    proxy.entities.extend(entities)
     async_add_entities(entities)
 
 
 async def get_entities(proxy: RenaultHub) -> List[RenaultDataEntity]:
     """Create Renault entities for all vehicles."""
     entities: List[RenaultDataEntity] = []
-    for vehicle_link in proxy.get_vehicle_links():
-        vehicle_proxy = await proxy.get_vehicle(vehicle_link)
-        entities.extend(await get_vehicle_entities(vehicle_proxy))
+    for vehicle in proxy.vehicles.values():
+        entities.extend(await get_vehicle_entities(vehicle))
     return entities
 
 
-async def get_vehicle_entities(
-    vehicle_proxy: RenaultVehicleProxy,
-) -> List[RenaultDataEntity]:
+async def get_vehicle_entities(vehicle: RenaultVehicleProxy) -> List[RenaultDataEntity]:
     """Create Renault entities for single vehicle."""
     entities: List[RenaultDataEntity] = []
-    if "battery" in vehicle_proxy.coordinators:
-        entities.append(RenaultPluggedInSensor(vehicle_proxy, "Plugged In"))
-        entities.append(RenaultChargingSensor(vehicle_proxy, "Charging"))
+    if "battery" in vehicle.coordinators:
+        entities.append(RenaultPluggedInSensor(vehicle, "Plugged In"))
+        entities.append(RenaultChargingSensor(vehicle, "Charging"))
     return entities
 
 
