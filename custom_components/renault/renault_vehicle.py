@@ -151,7 +151,7 @@ class RenaultVehicleProxy:
         return await self._vehicle.set_charge_start()
 
     async def send_set_charge_schedules(
-        self, schedules
+        self, schedules: models.KamereonVehicleChargingSettingsData
     ) -> models.KamereonVehicleChargeScheduleActionData:
         """Set charge schedules on vehicle."""
-        return await self._vehicle.set_charge_schedules(schedules)
+        return await self._vehicle.set_charge_schedules(schedules.schedules)

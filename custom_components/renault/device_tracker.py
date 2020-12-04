@@ -20,7 +20,6 @@ async def async_setup_entry(
     """Set up the Renault entities from config entry."""
     proxy: RenaultHub = hass.data[DOMAIN][config_entry.unique_id]
     entities: List[RenaultDataEntity] = await get_entities(proxy)
-    proxy.entities.extend(entities)
     async_add_entities(entities)
 
 
