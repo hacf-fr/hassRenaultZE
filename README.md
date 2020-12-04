@@ -57,6 +57,16 @@ custom_components/renault/strings.json
 
 <!---->
 
+## Logging
+If you are having issues with the component, please enable debug logging in your `configuration.yaml`, for example:
+```
+logger:
+  default: error
+  logs:
+    renault_api: debug
+    custom_components.renault: debug
+```
+
 ## Contributions are welcome!
 
 If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)

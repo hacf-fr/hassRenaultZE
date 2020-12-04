@@ -2,11 +2,12 @@
   "domain": "renault",
   "name": "Renault",
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/renault",
-  "issue_tracker": "https://github.com/epenet/hassRenaultZE/issues",
+  "documentation": "https://github.com/hacf-fr/hassRenaultZE",
+  "issue_tracker": "https://github.com/hacf-fr/hassRenaultZE/issues",
   "requirements": [
-    "pyze==0.6.0",
-    "renault-api==0.0.1a0"
+    "renault-api==0.0.2"
   ],
-  "codeowners": ["@epenet"]
+  "codeowners": [
+    "@epenet"
+  ]
 }

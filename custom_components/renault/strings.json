@@ -1,19 +1,13 @@
 {
   "config": {
     "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_account%]",
       "kamereon_no_account": "Unable to find Kamereon account."
     },
     "error": {
       "invalid_credentials": "[%key:common::config_flow::error::invalid_auth%]"
     },
     "step": {
-      "credentials": {
-        "data": {
-          "username": "[%key:common::config_flow::data::email%]",
-          "password": "[%key:common::config_flow::data::password%]"
-        },
-        "title": "Set Renault credentials"
-      },
       "kamereon": {
         "data": {
           "kamereon_account_id": "Kamereon account id"
@@ -22,9 +16,11 @@
       },
       "user": {
         "data": {
-          "locale": "Locale"
+          "locale": "Locale",
+          "username": "[%key:common::config_flow::data::email%]",
+          "password": "[%key:common::config_flow::data::password%]"
         },
-        "title": "Select locale"
+        "title": "Set Renault credentials"
       }
     }
   }
