@@ -17,3 +17,4 @@ SUPPORTED_PLATFORMS = [
 
 DEVICE_CLASS_PLUG_STATE = "renault__plug_state"
 DEVICE_CLASS_CHARGE_STATE = "renault__charge_state"
+DEVICE_CLASS_CHARGE_MODE = "renault__charge_mode"
