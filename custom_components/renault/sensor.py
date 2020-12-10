@@ -21,7 +21,7 @@ from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import slugify
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
-from .const import DOMAIN, DEVICE_CLASS_PLUG_STATE, DEVICE_CLASS_CHARGE_STATE
+from .const import DOMAIN, DEVICE_CLASS_PLUG_STATE, DEVICE_CLASS_CHARGE_STATE, DEVICE_CLASS_CHARGE_MODE
 from .renault_entities import (
     RenaultBatteryDataEntity,
     RenaultChargeModeDataEntity,
@@ -143,6 +143,10 @@ class RenaultChargeModeSensor(RenaultChargeModeDataEntity):
             else None
         )
 
+    @property
+    def device_class(self) -> str:
+        """Returning sensor device class"""
+        return DEVICE_CLASS_CHARGE_MODE
 
 class RenaultChargingRemainingTimeSensor(RenaultBatteryDataEntity):
     """Charging Remaining Time sensor."""
