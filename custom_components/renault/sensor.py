@@ -11,7 +11,6 @@ from homeassistant.const import (
     PERCENTAGE,
     POWER_KILO_WATT,
     TEMP_CELSIUS,
-    TIME_MINUTES,
     VOLUME_GALLONS,
     VOLUME_LITERS,
 )
@@ -152,11 +151,6 @@ class RenaultChargingRemainingTimeSensor(RenaultBatteryDataEntity):
     def state(self) -> Optional[int]:
         """Return the state of this entity."""
         return self.data.chargingRemainingTime
-    
-    @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement of this entity."""
-        return TIME_MINUTES
 
 
 class RenaultChargingPowerSensor(RenaultBatteryDataEntity):
