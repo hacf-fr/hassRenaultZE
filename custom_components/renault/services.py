@@ -42,7 +42,7 @@ SERVICE_CHARGE_SET_MODE = "charge_set_mode"
 SERVICE_CHARGE_SET_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(SCHEMA_VIN): cv.matches_regex(REGEX_VIN),
-        vol.Required(SCHEMA_CHARGE_MODE): cv.enum(ChargeMode),
+        vol.Required(SCHEMA_CHARGE_MODE): cv.string,
     }
 )
 SERVICE_CHARGE_SET_SCHEDULES = "charge_set_schedules"
@@ -98,11 +98,13 @@ async def async_setup_services(hass: HomeAssistantType) -> None:
     async def charge_set_mode(service_call) -> None:
         """Set charge mode."""
         service_call_data: Dict[str, Any] = service_call.data
-        charge_mode = service_call_data.get(SCHEMA_CHARGE_MODE)
+        charge_mode: str = service_call_data[SCHEMA_CHARGE_MODE]
         vehicle = get_vehicle(service_call_data)
         _LOGGER.debug("Charge set mode attempt: %s", charge_mode)
         try:
-            result = await vehicle.send_set_charge_mode(charge_mode)
+            # there was some confusion in earlier release regarding upper or lower case of charge-mode
+            # so forcing to lower manually for the custom-component (always or always_charging or schedule_mode)
+            result = await vehicle.send_set_charge_mode(ChargeMode(charge_mode.lower()))
         except KamereonResponseException as err:
             _LOGGER.error("Charge set mode failed: %s", err)
         else:
@@ -143,7 +145,9 @@ async def async_setup_services(hass: HomeAssistantType) -> None:
         vin: str = service_call_data[SCHEMA_VIN]
         proxy: RenaultHub
         for proxy in hass.data[DOMAIN].values():
-            vehicle = proxy.vehicles.get(vin)
+            # there was some confusion in earlier release regarding upper or lower case of vin
+            # so forcing to upper manually for the custom-component
+            vehicle = proxy.vehicles.get(vin.upper())
             if vehicle is not None:
                 return vehicle
         raise ValueError(f"Unable to find vehicle with VIN: {vin}")

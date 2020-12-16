@@ -33,7 +33,7 @@ charge_set_mode:
       example: "VF1xxxxxxxxxxxxxx"
     charge_mode:
       description: Charge mode to apply.
-      example: "ALWAYS or ALWAYS_CHARGING or SCHEDULE_MODE"
+      example: "always or always_charging or schedule_mode"
 
 charge_set_schedules:
   description: Update charge schedule on vehicle.
