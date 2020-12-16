@@ -15,9 +15,9 @@
       "charge_error": "Not charging or plugged in"
     },
     "renault__charge_mode": {
-      "SCHEDULE_MODE": "Scheduled",
-      "ALWAYS_CHARGING": "Instantaneous",
-      "ALWAYS": "Instantaneous"
+      "always": "Instant",
+      "always_charging": "Instant",
+      "schedule_mode": "Planner"
     }
   }
 }
