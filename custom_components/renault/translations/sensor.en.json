@@ -13,6 +13,11 @@
       "energy_flap_opened": "Energy flap opened",
       "charge_in_progress": "Charging",
       "charge_error": "Not charging or plugged in"
+    },
+    "renault__charge_mode": {
+      "always": "Instant",
+      "always_charging": "Instant",
+      "schedule_mode": "Planner"
     }
   }
 }

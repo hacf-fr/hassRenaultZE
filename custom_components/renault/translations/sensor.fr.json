@@ -13,6 +13,11 @@
       "energy_flap_opened": "Trappe de charge ouverte",
       "charge_in_progress": "En charge",
       "charge_error": "Pas de charge ou débranchée"
+    },
+    "renault__charge_mode": {
+      "always": "Instantanée",
+      "always_charging": "Instantanée",
+      "schedule_mode": "Planning"
     }
   }
 }
