@@ -1,12 +1,19 @@
 """Support for Renault devices."""
+from datetime import timedelta
 import aiohttp
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import CONF_KAMEREON_ACCOUNT_ID, CONF_LOCALE, DOMAIN, SUPPORTED_PLATFORMS
+from .const import (
+    CONF_KAMEREON_ACCOUNT_ID,
+    CONF_LOCALE,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    SUPPORTED_PLATFORMS,
+)
 from .renault_hub import RenaultHub
 from .services import async_setup_services, async_unload_services
 
@@ -20,7 +27,13 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry):
     """Load a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
-    renault_hub = RenaultHub(hass, config_entry.data[CONF_LOCALE])
+    renault_hub = RenaultHub(
+        hass,
+        config_entry.data[CONF_LOCALE],
+        timedelta(
+            seconds=config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+        ),
+    )
     try:
         login_success = await renault_hub.attempt_login(
             config_entry.data[CONF_USERNAME], config_entry.data[CONF_PASSWORD]

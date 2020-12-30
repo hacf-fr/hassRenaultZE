@@ -1,4 +1,5 @@
 """Proxy to handle account communication with Renault servers."""
+from datetime import timedelta
 import logging
 from typing import Dict, List, Optional
 
@@ -17,13 +18,16 @@ LOGGER = logging.getLogger(__name__)
 class RenaultHub:
     """Handle account communication with Renault servers."""
 
-    def __init__(self, hass: HomeAssistantType, locale: str) -> None:
+    def __init__(
+        self, hass: HomeAssistantType, locale: str, scan_interval: timedelta
+    ) -> None:
         """Initialise proxy."""
         LOGGER.debug("Creating RenaultHub")
         self._hass = hass
         self._client = RenaultClient(
             websession=async_get_clientsession(self._hass), locale=locale
         )
+        self._scan_interval = scan_interval
         self._account: Optional[RenaultAccount] = None
         self._vehicles: Dict[str, RenaultVehicleProxy] = {}
 
@@ -49,7 +53,7 @@ class RenaultHub:
                 await self._account.get_api_vehicle(vin),
                 vehicle_link.vehicleDetails,
             )
-            await vehicle.async_initialise()
+            await vehicle.async_initialise(scan_interval=self._scan_interval)
             self._vehicles[vin] = vehicle
 
     async def get_account_ids(self) -> List[str]:

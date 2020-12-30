@@ -23,5 +23,14 @@
         "title": "Set Renault credentials"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Seconds between API calls"
+        }
+      }
+    }
   }
 }

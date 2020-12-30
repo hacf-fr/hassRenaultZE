@@ -6,6 +6,9 @@ CONF_KAMEREON_APIKEY = "kamereon-api-key"
 CONF_LOCALE = "locale"
 CONF_KAMEREON_ACCOUNT_ID = "kamereon_account_id"
 
+DEFAULT_SCAN_INTERVAL = 300  # 5 minutes
+MIN_SCAN_INTERVAL = 60  # 1 minute
+
 REGEX_VIN = "(?i)^VF1[\\w]{14}$"
 
 SUPPORTED_PLATFORMS = [
