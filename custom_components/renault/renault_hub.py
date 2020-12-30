@@ -7,9 +7,12 @@ from renault_api.gigya.exceptions import InvalidCredentialsException
 from renault_api.renault_account import RenaultAccount
 from renault_api.renault_client import RenaultClient
 
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import HomeAssistantType
 
+from .const import CONF_KAMEREON_ACCOUNT_ID, DEFAULT_SCAN_INTERVAL
 from .renault_vehicle import RenaultVehicleProxy
 
 LOGGER = logging.getLogger(__name__)
@@ -19,7 +22,9 @@ class RenaultHub:
     """Handle account communication with Renault servers."""
 
     def __init__(
-        self, hass: HomeAssistantType, locale: str, scan_interval: timedelta
+        self,
+        hass: HomeAssistantType,
+        locale: str,
     ) -> None:
         """Initialise proxy."""
         LOGGER.debug("Creating RenaultHub")
@@ -27,7 +32,6 @@ class RenaultHub:
         self._client = RenaultClient(
             websession=async_get_clientsession(self._hass), locale=locale
         )
-        self._scan_interval = scan_interval
         self._account: Optional[RenaultAccount] = None
         self._vehicles: Dict[str, RenaultVehicleProxy] = {}
 
@@ -41,8 +45,17 @@ class RenaultHub:
             return True
         return False
 
-    async def set_account_id(self, account_id: str) -> None:
+    async def async_initialise(self, config_entry: ConfigEntry) -> None:
         """Set up proxy."""
+        account_id: str = config_entry.data[CONF_KAMEREON_ACCOUNT_ID]
+        scan_interval = (
+            timedelta(
+                seconds=config_entry.options.get(
+                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                )
+            ),
+        )
+
         self._account = await self._client.get_api_account(account_id)
         vehicles = await self._account.get_vehicles()
         for vehicle_link in vehicles.vehicleLinks:
@@ -53,7 +66,7 @@ class RenaultHub:
                 await self._account.get_api_vehicle(vin),
                 vehicle_link.vehicleDetails,
             )
-            await vehicle.async_initialise(scan_interval=self._scan_interval)
+            await vehicle.async_initialise(scan_interval=scan_interval)
             self._vehicles[vin] = vehicle
 
     async def get_account_ids(self) -> List[str]:
