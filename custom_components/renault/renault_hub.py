@@ -21,11 +21,7 @@ LOGGER = logging.getLogger(__name__)
 class RenaultHub:
     """Handle account communication with Renault servers."""
 
-    def __init__(
-        self,
-        hass: HomeAssistantType,
-        locale: str,
-    ) -> None:
+    def __init__(self, hass: HomeAssistantType, locale: str) -> None:
         """Initialise proxy."""
         LOGGER.debug("Creating RenaultHub")
         self._hass = hass
