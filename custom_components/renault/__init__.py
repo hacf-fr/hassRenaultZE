@@ -1,5 +1,4 @@
 """Support for Renault devices."""
-from datetime import timedelta
 import aiohttp
 
 from homeassistant.config_entries import ConfigEntry
@@ -21,10 +20,7 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry):
     """Load a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
-    renault_hub = RenaultHub(
-        hass,
-        config_entry.data[CONF_LOCALE],
-    )
+    renault_hub = RenaultHub(hass, config_entry.data[CONF_LOCALE])
     try:
         login_success = await renault_hub.attempt_login(
             config_entry.data[CONF_USERNAME], config_entry.data[CONF_PASSWORD]
