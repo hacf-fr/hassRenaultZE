@@ -255,16 +255,20 @@ class RenaultFuelAutonomySensor(RenaultCockpitDataEntity):
         """Return the state of this entity."""
         if self.data.fuelAutonomy is None:
             return None
-        if self.hass.config.units.is_metric:
-            return round(self.data.fuelAutonomy)
-        return IMPERIAL_SYSTEM.length(self.data.fuelAutonomy, METRIC_SYSTEM.length_unit)
+        if self.vehicle.distances_in_miles:
+            return round(
+                IMPERIAL_SYSTEM.length(
+                    self.data.fuelAutonomy, METRIC_SYSTEM.length_unit
+                )
+            )
+        return round(self.data.fuelAutonomy)
 
     @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
-        if self.hass.config.units.is_metric:
-            return LENGTH_KILOMETERS
-        return LENGTH_MILES
+        if self.vehicle.distances_in_miles:
+            return LENGTH_MILES
+        return LENGTH_KILOMETERS
 
 
 class RenaultFuelQuantitySensor(RenaultCockpitDataEntity):
@@ -297,18 +301,20 @@ class RenaultMileageSensor(RenaultCockpitDataEntity):
         """Return the state of this entity."""
         if self.data.totalMileage is None:
             return None
-        if self.hass.config.units.is_metric:
-            return round(self.data.totalMileage)
-        return round(
-            IMPERIAL_SYSTEM.length(self.data.totalMileage, METRIC_SYSTEM.length_unit)
-        )
+        if self.vehicle.distances_in_miles:
+            return round(
+                IMPERIAL_SYSTEM.length(
+                    self.data.totalMileage, METRIC_SYSTEM.length_unit
+                )
+            )
+        return round(self.data.totalMileage)
 
     @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
-        if self.hass.config.units.is_metric:
-            return LENGTH_KILOMETERS
-        return LENGTH_MILES
+        if self.vehicle.distances_in_miles:
+            return LENGTH_MILES
+        return LENGTH_KILOMETERS
 
 
 class RenaultBatteryAutonomySensor(RenaultBatteryDataEntity):
@@ -319,15 +325,17 @@ class RenaultBatteryAutonomySensor(RenaultBatteryDataEntity):
         """Return the state of this entity."""
         if self.data.batteryAutonomy is None:
             return None
-        if self.hass.config.units.is_metric:
-            return self.data.batteryAutonomy
-        return IMPERIAL_SYSTEM.length(
-            self.data.batteryAutonomy, METRIC_SYSTEM.length_unit
-        )
+        if self.vehicle.distances_in_miles:
+            return round(
+                IMPERIAL_SYSTEM.length(
+                    self.data.batteryAutonomy, METRIC_SYSTEM.length_unit
+                )
+            )
+        return self.data.batteryAutonomy
 
     @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
-        if self.hass.config.units.is_metric:
-            return LENGTH_KILOMETERS
-        return LENGTH_MILES
+        if self.vehicle.distances_in_miles:
+            return LENGTH_MILES
+        return LENGTH_KILOMETERS

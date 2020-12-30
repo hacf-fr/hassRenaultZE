@@ -5,6 +5,7 @@ CONF_GIGYA_APIKEY = "gigya-api-key"
 CONF_KAMEREON_APIKEY = "kamereon-api-key"
 CONF_LOCALE = "locale"
 CONF_KAMEREON_ACCOUNT_ID = "kamereon_account_id"
+CONF_DISTANCES_IN_MILES = "distances_in_miles"
 
 DEFAULT_SCAN_INTERVAL = 300  # 5 minutes
 MIN_SCAN_INTERVAL = 60  # 1 minute

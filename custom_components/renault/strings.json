@@ -28,7 +28,8 @@
     "step": {
       "init": {
         "data": {
-          "scan_interval": "Time in seconds between two API calls"
+          "scan_interval": "Time in seconds between two API calls",
+          "distances_in_miles": "Display distances in miles"
         }
       }
     }

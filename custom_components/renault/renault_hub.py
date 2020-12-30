@@ -12,7 +12,11 @@ from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import CONF_KAMEREON_ACCOUNT_ID, DEFAULT_SCAN_INTERVAL
+from .const import (
+    CONF_DISTANCES_IN_MILES,
+    CONF_KAMEREON_ACCOUNT_ID,
+    DEFAULT_SCAN_INTERVAL,
+)
 from .renault_vehicle import RenaultVehicleProxy
 
 LOGGER = logging.getLogger(__name__)
@@ -47,6 +51,9 @@ class RenaultHub:
         scan_interval = timedelta(
             seconds=config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         )
+        distances_in_miles: bool = config_entry.options.get(
+            CONF_DISTANCES_IN_MILES, False
+        )
 
         self._account = await self._client.get_api_account(account_id)
         vehicles = await self._account.get_vehicles()
@@ -58,6 +65,7 @@ class RenaultHub:
                 vehicle=await self._account.get_api_vehicle(vin),
                 details=vehicle_link.vehicleDetails,
                 scan_interval=scan_interval,
+                distances_in_miles=distances_in_miles,
             )
             await vehicle.async_initialise()
             self._vehicles[vin] = vehicle
