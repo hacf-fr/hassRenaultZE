@@ -22,6 +22,7 @@ class RenaultVehicleProxy:
         hass: HomeAssistantType,
         vehicle: RenaultVehicle,
         details: models.KamereonVehiclesDetails,
+        scan_interval: timedelta,
     ) -> None:
         """Initialise vehicle proxy."""
         self.hass = hass
@@ -36,6 +37,7 @@ class RenaultVehicleProxy:
         }
         self.coordinators: Dict[str, RenaultDataUpdateCoordinator] = {}
         self.hvac_target_temperature = 21
+        self._scan_interval = scan_interval
 
     @property
     def details(self) -> models.KamereonVehiclesDetails:
@@ -47,7 +49,7 @@ class RenaultVehicleProxy:
         """Return a device description for device registry."""
         return self._device_info
 
-    async def async_initialise(self, scan_interval: timedelta) -> None:
+    async def async_initialise(self) -> None:
         """Load available sensors."""
         self.coordinators["cockpit"] = RenaultDataUpdateCoordinator(
             self.hass,
@@ -56,7 +58,7 @@ class RenaultVehicleProxy:
             name=f"{self.details.vin} cockpit",
             update_method=self.get_cockpit,
             # Polling interval. Will only be polled if there are subscribers.
-            update_interval=scan_interval,
+            update_interval=self._scan_interval,
         )
         self.coordinators["hvac_status"] = RenaultDataUpdateCoordinator(
             self.hass,
@@ -65,7 +67,7 @@ class RenaultVehicleProxy:
             name=f"{self.details.vin} hvac_status",
             update_method=self.get_hvac_status,
             # Polling interval. Will only be polled if there are subscribers.
-            update_interval=scan_interval,
+            update_interval=self._scan_interval,
         )
         if self.details.uses_electricity():
             self.coordinators["battery"] = RenaultDataUpdateCoordinator(
@@ -75,7 +77,7 @@ class RenaultVehicleProxy:
                 name=f"{self.details.vin} battery",
                 update_method=self.get_battery_status,
                 # Polling interval. Will only be polled if there are subscribers.
-                update_interval=scan_interval,
+                update_interval=self._scan_interval,
             )
             self.coordinators["charge_mode"] = RenaultDataUpdateCoordinator(
                 self.hass,
@@ -84,7 +86,7 @@ class RenaultVehicleProxy:
                 name=f"{self.details.vin} charge_mode",
                 update_method=self.get_charge_mode,
                 # Polling interval. Will only be polled if there are subscribers.
-                update_interval=scan_interval,
+                update_interval=self._scan_interval,
             )
         self.coordinators["location"] = RenaultDataUpdateCoordinator(
             self.hass,
@@ -93,7 +95,7 @@ class RenaultVehicleProxy:
             name=f"{self.details.vin} location",
             update_method=self.get_location,
             # Polling interval. Will only be polled if there are subscribers.
-            update_interval=scan_interval,
+            update_interval=self._scan_interval,
         )
         for key in list(self.coordinators.keys()):
             await self.coordinators[key].async_refresh()

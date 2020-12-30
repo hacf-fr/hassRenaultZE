@@ -44,12 +44,8 @@ class RenaultHub:
     async def async_initialise(self, config_entry: ConfigEntry) -> None:
         """Set up proxy."""
         account_id: str = config_entry.data[CONF_KAMEREON_ACCOUNT_ID]
-        scan_interval = (
-            timedelta(
-                seconds=config_entry.options.get(
-                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                )
-            ),
+        scan_interval = timedelta(
+            seconds=config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         )
 
         self._account = await self._client.get_api_account(account_id)
@@ -58,11 +54,12 @@ class RenaultHub:
             # Generate vehicle proxy
             vin = vehicle_link.vin
             vehicle = RenaultVehicleProxy(
-                self._hass,
-                await self._account.get_api_vehicle(vin),
-                vehicle_link.vehicleDetails,
+                hass=self._hass,
+                vehicle=await self._account.get_api_vehicle(vin),
+                details=vehicle_link.vehicleDetails,
+                scan_interval=scan_interval,
             )
-            await vehicle.async_initialise(scan_interval=scan_interval)
+            await vehicle.async_initialise()
             self._vehicles[vin] = vehicle
 
     async def get_account_ids(self) -> List[str]:
