@@ -28,7 +28,7 @@
     "step": {
       "init": {
         "data": {
-          "scan_interval": "Time in seconds between API calls"
+          "scan_interval": "Time in seconds between two API calls"
         }
       }
     }
