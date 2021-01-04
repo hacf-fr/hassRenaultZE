@@ -23,5 +23,14 @@
         "title": "Entrez vos information d'identification Renault"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Délai en secondes entre deux appels API"
+        }
+      }
+    }
   }
 }
