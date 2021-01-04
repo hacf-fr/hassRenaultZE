@@ -51,9 +51,7 @@ class RenaultPluggedInSensor(RenaultBatteryDataEntity, BinarySensorEntity):
     @property
     def is_on(self) -> Optional[bool]:
         """Return true if the binary sensor is on."""
-        if not self.data:
-            return None
-        if self.data.plugStatus is None:
+        if (not self.data) or (self.data.plugStatus is None):
             return None
         return self.data.get_plug_status() == PlugState.PLUGGED
 
@@ -76,9 +74,7 @@ class RenaultChargingSensor(RenaultBatteryDataEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        if not self.data:
-            return None
-        if self.data.chargingStatus is None:
+        if (not self.data) or (self.data.chargingStatus is None):
             return None
         return self.data.get_charging_status() == ChargeState.CHARGE_IN_PROGRESS
 
