@@ -10,6 +10,7 @@ from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 
 from .const import (  # pylint: disable=unused-import
+    CONF_DISTANCES_IN_MILES,
     CONF_KAMEREON_ACCOUNT_ID,
     CONF_LOCALE,
     DEFAULT_SCAN_INTERVAL,
@@ -124,6 +125,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                         ),
                     ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
+                    vol.Optional(
+                        CONF_DISTANCES_IN_MILES,
+                        default=self.config_entry.options.get(
+                            CONF_DISTANCES_IN_MILES, False
+                        ),
+                    ): bool,
                 }
             ),
         )

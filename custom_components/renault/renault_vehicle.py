@@ -23,6 +23,7 @@ class RenaultVehicleProxy:
         vehicle: RenaultVehicle,
         details: models.KamereonVehiclesDetails,
         scan_interval: timedelta,
+        distances_in_miles: bool,
     ) -> None:
         """Initialise vehicle proxy."""
         self.hass = hass
@@ -38,6 +39,7 @@ class RenaultVehicleProxy:
         self.coordinators: Dict[str, RenaultDataUpdateCoordinator] = {}
         self.hvac_target_temperature = 21
         self._scan_interval = scan_interval
+        self._distances_in_miles = distances_in_miles
 
     @property
     def details(self) -> models.KamereonVehiclesDetails:
@@ -48,6 +50,13 @@ class RenaultVehicleProxy:
     def device_info(self) -> Dict[str, Any]:
         """Return a device description for device registry."""
         return self._device_info
+
+    @property
+    def distances_in_miles(self) -> bool:
+        """Return True if distances should be displayed in miles."""
+        if self._distances_in_miles:
+            return True
+        return not self.hass.config.units.is_metric
 
     async def async_initialise(self) -> None:
         """Load available sensors."""
