@@ -3,16 +3,18 @@
     "renault__plug_state": {
       "unplugged": "Débranché",
       "plugged": "Branché",
-      "plug_error": "Erreur prise"
+      "plug_error": "Erreur prise",
+      "plug_unknown": "Prise inconnue"
     },
     "renault__charge_state": {
       "not_in_charge": "Pas de charge",
-      "waiting_for_planned_charge": "En attente pour la charge programmée",
+      "waiting_for_a_planned_charge": "En attente pour la charge programmée",
       "charge_ended": "Charge terminée",
       "waiting_for_current_charge": "En attente du courant de charge",
       "energy_flap_opened": "Trappe de charge ouverte",
       "charge_in_progress": "En charge",
-      "charge_error": "Pas de charge ou débranchée"
+      "charge_error": "Pas de charge ou débranchée",
+      "unavailable": "Indisponible"
     },
     "renault__charge_mode": {
       "always": "Instantanée",
