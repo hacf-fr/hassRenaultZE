@@ -2,9 +2,7 @@
 import logging
 from typing import Any, Dict
 
-from renault_api.kamereon.enums import ChargeMode
 from renault_api.kamereon.exceptions import KamereonResponseException
-import requests
 import voluptuous as vol
 
 from homeassistant.helpers import config_validation as cv
@@ -104,7 +102,7 @@ async def async_setup_services(hass: HomeAssistantType) -> None:
         try:
             # there was some confusion in earlier release regarding upper or lower case of charge-mode
             # so forcing to lower manually for the custom-component (always or always_charging or schedule_mode)
-            result = await vehicle.send_set_charge_mode(ChargeMode(charge_mode.lower()))
+            result = await vehicle.send_set_charge_mode(charge_mode.lower())
         except KamereonResponseException as err:
             _LOGGER.error("Charge set mode failed: %s", err)
         else:
