@@ -210,6 +210,11 @@ class RenaultOutsideTemperatureSensor(RenaultHVACDataEntity):
         return self.data.externalTemperature
 
     @property
+    def device_class(self) -> str:
+        """Return the class of this entity."""
+        return DEVICE_CLASS_TEMPERATURE
+
+    @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
         return TEMP_CELSIUS
