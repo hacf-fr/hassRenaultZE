@@ -8,7 +8,7 @@ from renault_api.renault_vehicle import RenaultVehicle
 
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import DOMAIN
+from .const import DOMAIN, RENAULT_API_URL
 from .renault_coordinator import RenaultDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
@@ -60,52 +60,57 @@ class RenaultVehicleProxy:
 
     async def async_initialise(self) -> None:
         """Load available sensors."""
-        self.coordinators["cockpit"] = RenaultDataUpdateCoordinator(
-            self.hass,
-            LOGGER,
-            # Name of the data. For logging purposes.
-            name=f"{self.details.vin} cockpit",
-            update_method=self.get_cockpit,
-            # Polling interval. Will only be polled if there are subscribers.
-            update_interval=self._scan_interval,
-        )
-        self.coordinators["hvac_status"] = RenaultDataUpdateCoordinator(
-            self.hass,
-            LOGGER,
-            # Name of the data. For logging purposes.
-            name=f"{self.details.vin} hvac_status",
-            update_method=self.get_hvac_status,
-            # Polling interval. Will only be polled if there are subscribers.
-            update_interval=self._scan_interval,
-        )
+        if await self.endpoint_available("cockpit"):
+            self.coordinators["cockpit"] = RenaultDataUpdateCoordinator(
+                self.hass,
+                LOGGER,
+                # Name of the data. For logging purposes.
+                name=f"{self.details.vin} cockpit",
+                update_method=self.get_cockpit,
+                # Polling interval. Will only be polled if there are subscribers.
+                update_interval=self._scan_interval,
+            )
+        if await self.endpoint_available("hvac-status"):
+            self.coordinators["hvac_status"] = RenaultDataUpdateCoordinator(
+                self.hass,
+                LOGGER,
+                # Name of the data. For logging purposes.
+                name=f"{self.details.vin} hvac_status",
+                update_method=self.get_hvac_status,
+                # Polling interval. Will only be polled if there are subscribers.
+                update_interval=self._scan_interval,
+            )
         if self.details.uses_electricity():
-            self.coordinators["battery"] = RenaultDataUpdateCoordinator(
+            if await self.endpoint_available("battery-status"):
+                self.coordinators["battery"] = RenaultDataUpdateCoordinator(
+                    self.hass,
+                    LOGGER,
+                    # Name of the data. For logging purposes.
+                    name=f"{self.details.vin} battery",
+                    update_method=self.get_battery_status,
+                    # Polling interval. Will only be polled if there are subscribers.
+                    update_interval=self._scan_interval,
+                )
+            if await self.endpoint_available("charge-mode"):
+                self.coordinators["charge_mode"] = RenaultDataUpdateCoordinator(
+                    self.hass,
+                    LOGGER,
+                    # Name of the data. For logging purposes.
+                    name=f"{self.details.vin} charge_mode",
+                    update_method=self.get_charge_mode,
+                    # Polling interval. Will only be polled if there are subscribers.
+                    update_interval=self._scan_interval,
+                )
+        if await self.endpoint_available("location"):
+            self.coordinators["location"] = RenaultDataUpdateCoordinator(
                 self.hass,
                 LOGGER,
                 # Name of the data. For logging purposes.
-                name=f"{self.details.vin} battery",
-                update_method=self.get_battery_status,
+                name=f"{self.details.vin} location",
+                update_method=self.get_location,
                 # Polling interval. Will only be polled if there are subscribers.
                 update_interval=self._scan_interval,
             )
-            self.coordinators["charge_mode"] = RenaultDataUpdateCoordinator(
-                self.hass,
-                LOGGER,
-                # Name of the data. For logging purposes.
-                name=f"{self.details.vin} charge_mode",
-                update_method=self.get_charge_mode,
-                # Polling interval. Will only be polled if there are subscribers.
-                update_interval=self._scan_interval,
-            )
-        self.coordinators["location"] = RenaultDataUpdateCoordinator(
-            self.hass,
-            LOGGER,
-            # Name of the data. For logging purposes.
-            name=f"{self.details.vin} location",
-            update_method=self.get_location,
-            # Polling interval. Will only be polled if there are subscribers.
-            update_interval=self._scan_interval,
-        )
         for key in list(self.coordinators.keys()):
             await self.coordinators[key].async_refresh()
             if self.coordinators[key].not_supported:
@@ -114,6 +119,19 @@ class RenaultVehicleProxy:
             elif self.coordinators[key].access_denied:
                 # Remove endpoint if it is denied for this vehicle.
                 del self.coordinators[key]
+
+    async def endpoint_available(self, endpoint: str) -> bool:
+        """Ensure the endpoint is available to avoid unnecessary queries."""
+        if not await self._vehicle.supports_endpoint(endpoint):
+            LOGGER.warning(
+                "Vehicle model %s does not appear to support %s endpoint."
+                " If you think this is a mistake, please open an issue on %s",
+                self.details.get_model_code(),
+                endpoint,
+                RENAULT_API_URL,
+            )
+            return False
+        return True
 
     async def get_battery_status(self) -> models.KamereonVehicleBatteryStatusData:
         """Get battery status information from vehicle."""
