@@ -21,7 +21,7 @@ class RenaultVehicleProxy:
         self,
         hass: HomeAssistantType,
         vehicle: RenaultVehicle,
-        details: models.KamereonVehiclesDetails,
+        details: models.KamereonVehicleDetails,
         scan_interval: timedelta,
         distances_in_miles: bool,
     ) -> None:
@@ -42,7 +42,7 @@ class RenaultVehicleProxy:
         self._distances_in_miles = distances_in_miles
 
     @property
-    def details(self) -> models.KamereonVehiclesDetails:
+    def details(self) -> models.KamereonVehicleDetails:
         """Return the specs of the vehicle."""
         return self._details
 
