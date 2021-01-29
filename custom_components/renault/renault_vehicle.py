@@ -116,9 +116,24 @@ class RenaultVehicleProxy:
             if self.coordinators[key].not_supported:
                 # Remove endpoint if it is not supported for this vehicle.
                 del self.coordinators[key]
+                LOGGER.warning(
+                    "`Not Supported` on HA coordinator %s was not caught"
+                    " by `endpoint_available` method. It may be useful"
+                    " to open an issue on %s",
+                    key,
+                    RENAULT_API_URL,
+                )
+
             elif self.coordinators[key].access_denied:
                 # Remove endpoint if it is denied for this vehicle.
                 del self.coordinators[key]
+                LOGGER.warning(
+                    "`Access Denied` on HA coordinator %s was not caught"
+                    " by `endpoint_available` method. It may be useful"
+                    " to open an issue on %s",
+                    key,
+                    RENAULT_API_URL,
+                )
 
     async def endpoint_available(self, endpoint: str) -> bool:
         """Ensure the endpoint is available to avoid unnecessary queries."""
