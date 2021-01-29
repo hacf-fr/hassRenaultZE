@@ -131,6 +131,15 @@ class RenaultVehicleProxy:
                 RENAULT_API_URL,
             )
             return False
+        if not await self._vehicle.has_contract_for_endpoint(endpoint):
+            LOGGER.warning(
+                "Vehicle %s does not appear to have a valid contract for %s endpoint."
+                " If you think this is a mistake, please open an issue on %s",
+                self.details.vin(),
+                endpoint,
+                RENAULT_API_URL,
+            )
+            return False
         return True
 
     async def get_battery_status(self) -> models.KamereonVehicleBatteryStatusData:
