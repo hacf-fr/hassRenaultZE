@@ -5,6 +5,7 @@ from renault_api.kamereon.enums import ChargeState, PlugState
 
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_ENERGY,
     DEVICE_CLASS_TEMPERATURE,
     LENGTH_KILOMETERS,
     LENGTH_MILES,
@@ -181,6 +182,11 @@ class RenaultChargingPowerSensor(RenaultBatteryDataEntity):
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
         return POWER_KILO_WATT
+
+    @property
+    def device_class(self) -> str:
+        """Returning sensor device class"""
+        return DEVICE_CLASS_ENERGY
 
 
 class RenaultOutsideTemperatureSensor(RenaultHVACDataEntity):
