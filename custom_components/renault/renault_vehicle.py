@@ -150,7 +150,7 @@ class RenaultVehicleProxy:
         return await self._vehicle.set_ac_stop()
 
     async def send_set_charge_mode(
-        self, charge_mode
+        self, charge_mode: str
     ) -> models.KamereonVehicleChargeModeActionData:
         """Set charge mode on vehicle."""
         return await self._vehicle.set_charge_mode(charge_mode)
