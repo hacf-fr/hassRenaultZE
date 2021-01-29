@@ -43,4 +43,4 @@ charge_set_schedules:
       example: "VF1xxxxxxxxxxxxxx"
     schedules:
       description: Schedule details.
-      example: "{'id':1,'activated':true,'monday':{'startTime':'T12:00Z','duration':15},'tuesday':{'startTime':'T12:00Z','duration':15},'wednesday':{'startTime':'T12:00Z','duration':15},'thursday':{'startTime':'T12:00Z','duration':15},'friday':{'startTime':'T12:00Z','duration':15},'saturday':{'startTime':'T12:00Z','duration':15},'sunday':{'startTime':'T04:30Z','duration':420}}"
+      example: "{'id':1,'activated':true,'monday':{'startTime':'T12:00Z','duration':15},'tuesday':{'startTime':'T12:00Z','duration':15},'wednesday':{'startTime':'T12:00Z','duration':15},'thursday':{'startTime':'T12:00Z','duration':15},'friday':{'startTime':'T12:00Z','duration':15},'saturday':{'startTime':'T12:00Z','duration':15},'sunday':{'startTime':'T12:00Z','duration':15}}"
