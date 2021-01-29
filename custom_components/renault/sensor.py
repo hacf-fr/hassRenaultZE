@@ -167,6 +167,11 @@ class RenaultChargingRemainingTimeSensor(RenaultBatteryDataEntity):
         return self.data.chargingRemainingTime
 
     @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:timer"
+
+    @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
         return TIME_MINUTES
