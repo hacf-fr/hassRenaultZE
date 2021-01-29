@@ -287,6 +287,11 @@ class RenaultFuelAutonomySensor(RenaultCockpitDataEntity):
         return round(self.data.fuelAutonomy)
 
     @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:gas-station"
+
+    @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
         if self.vehicle.distances_in_miles:
@@ -307,6 +312,11 @@ class RenaultFuelQuantitySensor(RenaultCockpitDataEntity):
         return round(
             IMPERIAL_SYSTEM.volume(self.data.fuelQuantity, METRIC_SYSTEM.volume_unit)
         )
+
+    @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:fuel"
 
     @property
     def unit_of_measurement(self) -> str:
@@ -333,6 +343,11 @@ class RenaultMileageSensor(RenaultCockpitDataEntity):
         return round(self.data.totalMileage)
 
     @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:sign-direction"
+
+    @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
         if self.vehicle.distances_in_miles:
@@ -355,6 +370,11 @@ class RenaultBatteryAutonomySensor(RenaultBatteryDataEntity):
                 )
             )
         return self.data.batteryAutonomy
+
+    @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:ev-station"
 
     @property
     def unit_of_measurement(self) -> str:
