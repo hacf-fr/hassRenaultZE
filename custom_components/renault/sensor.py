@@ -146,6 +146,13 @@ class RenaultChargeModeSensor(RenaultChargeModeDataEntity):
         return self.data.chargeMode
 
     @property
+    def icon(self) -> str:
+        """Icon handling."""
+        if self.data.chargeMode == "schedule_mode":
+            return "mdi:calendar-clock"
+        return "mdi:calendar-remove"
+
+    @property
     def device_class(self) -> str:
         """Returning sensor device class"""
         return DEVICE_CLASS_CHARGE_MODE
