@@ -5,6 +5,7 @@ from renault_api.kamereon.enums import ChargeState, PlugState
 
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_ENERGY,
     DEVICE_CLASS_TEMPERATURE,
     LENGTH_KILOMETERS,
     LENGTH_MILES,
@@ -145,6 +146,13 @@ class RenaultChargeModeSensor(RenaultChargeModeDataEntity):
         return self.data.chargeMode
 
     @property
+    def icon(self) -> str:
+        """Icon handling."""
+        if self.data.chargeMode == "schedule_mode":
+            return "mdi:calendar-clock"
+        return "mdi:calendar-remove"
+
+    @property
     def device_class(self) -> str:
         """Returning sensor device class"""
         return DEVICE_CLASS_CHARGE_MODE
@@ -157,6 +165,11 @@ class RenaultChargingRemainingTimeSensor(RenaultBatteryDataEntity):
     def state(self) -> Optional[int]:
         """Return the state of this entity."""
         return self.data.chargingRemainingTime
+
+    @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:timer"
 
     @property
     def unit_of_measurement(self) -> str:
@@ -182,6 +195,11 @@ class RenaultChargingPowerSensor(RenaultBatteryDataEntity):
         """Return the unit of measurement of this entity."""
         return POWER_KILO_WATT
 
+    @property
+    def device_class(self) -> str:
+        """Returning sensor device class"""
+        return DEVICE_CLASS_ENERGY
+
 
 class RenaultOutsideTemperatureSensor(RenaultHVACDataEntity):
     """HVAC Outside Temperature sensor."""
@@ -190,6 +208,11 @@ class RenaultOutsideTemperatureSensor(RenaultHVACDataEntity):
     def state(self) -> Optional[float]:
         """Return the state of this entity."""
         return self.data.externalTemperature
+
+    @property
+    def device_class(self) -> str:
+        """Return the class of this entity."""
+        return DEVICE_CLASS_TEMPERATURE
 
     @property
     def unit_of_measurement(self) -> str:
@@ -264,6 +287,11 @@ class RenaultFuelAutonomySensor(RenaultCockpitDataEntity):
         return round(self.data.fuelAutonomy)
 
     @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:gas-station"
+
+    @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
         if self.vehicle.distances_in_miles:
@@ -284,6 +312,11 @@ class RenaultFuelQuantitySensor(RenaultCockpitDataEntity):
         return round(
             IMPERIAL_SYSTEM.volume(self.data.fuelQuantity, METRIC_SYSTEM.volume_unit)
         )
+
+    @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:fuel"
 
     @property
     def unit_of_measurement(self) -> str:
@@ -310,6 +343,11 @@ class RenaultMileageSensor(RenaultCockpitDataEntity):
         return round(self.data.totalMileage)
 
     @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:sign-direction"
+
+    @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity."""
         if self.vehicle.distances_in_miles:
@@ -332,6 +370,11 @@ class RenaultBatteryAutonomySensor(RenaultBatteryDataEntity):
                 )
             )
         return self.data.batteryAutonomy
+
+    @property
+    def icon(self) -> str:
+        """Icon handling."""
+        return "mdi:ev-station"
 
     @property
     def unit_of_measurement(self) -> str:
