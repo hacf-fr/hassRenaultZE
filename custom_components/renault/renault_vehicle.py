@@ -138,8 +138,8 @@ class RenaultVehicleProxy:
     async def endpoint_available(self, endpoint: str) -> bool:
         """Ensure the endpoint is available to avoid unnecessary queries."""
         if not await self._vehicle.supports_endpoint(endpoint):
-            LOGGER.warning(
-                "Vehicle model %s does not appear to support %s endpoint."
+            LOGGER.info(
+                "Vehicle model %s does not appear to support endpoint '%s'."
                 " If you think this is a mistake, please open an issue on %s",
                 self.details.get_model_code(),
                 endpoint,
@@ -147,8 +147,8 @@ class RenaultVehicleProxy:
             )
             return False
         if not await self._vehicle.has_contract_for_endpoint(endpoint):
-            LOGGER.warning(
-                "Vehicle %s does not appear to have a valid contract for %s endpoint."
+            LOGGER.info(
+                "Vehicle %s does not appear to have a valid contract for endpoint '%s'."
                 " If you think this is a mistake, please open an issue on %s",
                 self.details.vin(),
                 endpoint,
