@@ -42,7 +42,7 @@ switch:
       zoe_ac_start:
         friendly_name: "A/C"
         icon_template: mdi:fan
-        value_template: "{{ is_state('script.zoe_ac_start', 'on') }}"
+        value_template: "{{ is_state('script.start_hvac', 'on') }}"
         turn_on:
           service: homeassistant.turn_on
           data:
