@@ -54,7 +54,7 @@ custom_components/renault/strings.json
 ```
 
 ## Configuration
-Configuration is done in the UI, but some cases needs [specific configuration](CONFIGURE.md).
+Configuration is done in the UI, but some cases need [specific configuration](CONFIGURE.md).
 
 
 ## Logging
