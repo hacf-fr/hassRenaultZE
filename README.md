@@ -17,7 +17,6 @@ _Component to integrate with [Renault][renault]._
 Platform | Description
 -- | --
 `binary_sensor` | Show car charge and plug status as `True` or `False`.
-`climate` | Control car HVAC.
 `device_tracker` | Show car location.
 `sensor` | Show various information about the car status.
 
@@ -37,16 +36,19 @@ Using your HA configuration directory (folder) as a starting point you should no
 
 ```text
 custom_components/renault/translations/en.json
+custom_components/renault/translations/fr.json
+custom_components/renault/translations/sensor.en.json
+custom_components/renault/translations/sensor.fr.json
 custom_components/renault/__init__.py
 custom_components/renault/binary_sensor.py
-custom_components/renault/climate.py
 custom_components/renault/config_flow.py
 custom_components/renault/const.py
 custom_components/renault/device_tracker.json
 custom_components/renault/manifest.json
-custom_components/renault/pyzeproxy.py
-custom_components/renault/pyzevehicleproxy.py
-custom_components/renault/renaultentity.py
+custom_components/renault/renault_coordinator.py
+custom_components/renault/renault_entities.py
+custom_components/renault/renault_hub.py
+custom_components/renault/renault_vehicle.py
 custom_components/renault/sensor.py
 custom_components/renault/services.py
 custom_components/renault/services.yaml
