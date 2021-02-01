@@ -53,9 +53,9 @@ custom_components/renault/services.yaml
 custom_components/renault/strings.json
 ```
 
-## Configuration is done in the UI
+## Configuration
+Configuration is done in the UI, but some cases need [specific configuration](CONFIGURE.md).
 
-<!---->
 
 ## Logging
 If you are having issues with the component, please enable debug logging in your `configuration.yaml`, for example:
