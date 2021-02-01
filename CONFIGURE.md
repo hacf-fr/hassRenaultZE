@@ -5,7 +5,7 @@ The component is generic and tries to adapt to all supported models. It is mostl
 ## HVAC
 On some models (eg. Zoe40), HVAC status always reports as off. On other models (eg. Zoe50) it is not available at all. HVAC control is therefore not available as a standard climate entity, but needs to be controlled via a service call to `renault.ac_start`.
 
-The service `renault.ac_stop` does not provide errors, but it is assumed that is as no effect on the vehicle.
+Please note that the service `renault.ac_stop` does not provide errors, but appears to have no effect on some models.
 Following MyRenaultApp documentation, HVAC is started between 5 and 50 min.
 
 This is an example script to start HVAC for Zoe50 :
