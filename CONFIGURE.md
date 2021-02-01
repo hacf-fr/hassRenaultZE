@@ -1,7 +1,6 @@
 # Configuration
 
-The component tends to be generic and adapt to all supported models. However, Renault locks or limit some functionnalities based on vehicle model.
-This page list them.
+The component is generic and tries to adapt to all supported models. It is mostly configured via the UI however, due to limitations on the Renault API, some features may need to be configured manually.
 
 ## HVAC
 Hvac status is not available for Zoe50 (model code X102VE). But Starting HVAC is possible with service `renault.ac_start`.
