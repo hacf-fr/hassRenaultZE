@@ -150,7 +150,7 @@ class RenaultVehicleProxy:
             LOGGER.info(
                 "Vehicle %s does not appear to have a valid contract for endpoint '%s'."
                 " If you think this is a mistake, please open an issue on %s",
-                self.details.vin(),
+                self.details.vin,
                 endpoint,
                 RENAULT_API_URL,
             )
