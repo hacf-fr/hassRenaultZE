@@ -8,7 +8,7 @@ On some models (eg. Zoe40), HVAC status always reports as off. On other models (
 Please note that the service `renault.ac_stop` does not provide errors, but appears to have no effect on some models.
 Following MyRenaultApp documentation, HVAC is started between 5 and 50 min.
 
-This is an example script to start HVAC for Zoe50 :
+This is an example script to start HVAC :
 ```yaml
 # Scripts
 script:
