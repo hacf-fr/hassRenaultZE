@@ -32,7 +32,7 @@ script:
   icon: mdi:snowflake
 ```
 
-This is and example of switch :
+This is an example of a fake switch, whose state will match whether the script is still running (ie. was started less than 300 seconds ago) :
 ```yaml
 # Switches
 switch:
