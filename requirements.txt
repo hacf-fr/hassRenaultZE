@@ -1,1 +1,1 @@
-renault-api==0.1.0
+renault-api==0.1.2
