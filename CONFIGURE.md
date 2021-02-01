@@ -1,4 +1,4 @@
-# Limitations
+# Configuration
 
 The component tends to be generic and adapt to all supported models. However, Renault locks or limit some functionnalities based on vehicle model.
 This page list them.
