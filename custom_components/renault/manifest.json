@@ -1,6 +1,7 @@
 {
   "domain": "renault",
   "name": "Renault",
+  "version": "3.0.6",
   "config_flow": true,
   "documentation": "https://github.com/hacf-fr/hassRenaultZE",
   "issue_tracker": "https://github.com/hacf-fr/hassRenaultZE/issues",
