@@ -1,8 +1,7 @@
 """Support for Renault sensors."""
 from typing import Any, Dict, List, Optional
 
-from renault_api.kamereon.enums import ChargeState, PlugState
-
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_ENERGY,
@@ -16,17 +15,17 @@ from homeassistant.const import (
     VOLUME_GALLONS,
     VOLUME_LITERS,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import slugify
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
+from renault_api.kamereon.enums import ChargeState, PlugState
 
 from .const import (
-    DOMAIN,
-    DEVICE_CLASS_PLUG_STATE,
-    DEVICE_CLASS_CHARGE_STATE,
     DEVICE_CLASS_CHARGE_MODE,
+    DEVICE_CLASS_CHARGE_STATE,
+    DEVICE_CLASS_PLUG_STATE,
+    DOMAIN,
 )
 from .renault_entities import (
     RenaultBatteryDataEntity,

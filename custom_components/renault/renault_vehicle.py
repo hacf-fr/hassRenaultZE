@@ -3,10 +3,9 @@ from datetime import timedelta
 import logging
 from typing import Any, Dict
 
+from homeassistant.helpers.typing import HomeAssistantType
 from renault_api.kamereon import models
 from renault_api.renault_vehicle import RenaultVehicle
-
-from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN, RENAULT_API_URL
 from .renault_coordinator import RenaultDataUpdateCoordinator

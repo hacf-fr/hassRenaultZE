@@ -7,9 +7,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN
+from .renault_entities import RenaultDataEntity, RenaultLocationDataEntity
 from .renault_hub import RenaultHub
 from .renault_vehicle import RenaultVehicleProxy
-from .renault_entities import RenaultDataEntity, RenaultLocationDataEntity
 
 
 async def async_setup_entry(

@@ -6,7 +6,6 @@ from homeassistant.helpers.update_coordinator import (
     T,
     UpdateFailed,
 )
-
 from renault_api.kamereon.exceptions import (
     AccessDeniedException,
     KamereonResponseException,

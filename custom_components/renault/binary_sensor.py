@@ -1,20 +1,19 @@
 """Support for Renault sensors."""
 from typing import List, Optional
 
-from renault_api.kamereon.enums import ChargeState, PlugState
-
 from homeassistant.components.binary_sensor import (
-    DEVICE_CLASS_PLUG,
     DEVICE_CLASS_BATTERY_CHARGING,
+    DEVICE_CLASS_PLUG,
     BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
+from renault_api.kamereon.enums import ChargeState, PlugState
 
 from .const import DOMAIN
+from .renault_entities import RenaultBatteryDataEntity, RenaultDataEntity
 from .renault_hub import RenaultHub
 from .renault_vehicle import RenaultVehicleProxy
-from .renault_entities import RenaultBatteryDataEntity, RenaultDataEntity
 
 
 async def async_setup_entry(

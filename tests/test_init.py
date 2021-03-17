@@ -6,11 +6,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.renault import (
-    RenaultHub,
-    async_setup_entry,
-    async_unload_entry,
-)
+from custom_components.renault import RenaultHub, async_setup_entry, async_unload_entry
 from custom_components.renault.const import DOMAIN
 
 from .const import MOCK_CONFIG

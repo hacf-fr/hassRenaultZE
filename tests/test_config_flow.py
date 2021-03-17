@@ -2,12 +2,13 @@
 from unittest.mock import patch
 
 from homeassistant import config_entries, data_entry_flow
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+
 from custom_components.renault.const import (
     CONF_KAMEREON_ACCOUNT_ID,
     CONF_LOCALE,
     DOMAIN,
 )
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
 
 async def test_config_flow_single_account(hass):
