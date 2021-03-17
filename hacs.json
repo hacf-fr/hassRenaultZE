@@ -1,9 +1,7 @@
 {
     "name": "Renault",
-    "hacs": "0.24.0",
     "domains": [
         "binary_sensor",
-        "climate",
         "device_tracker",
         "sensor"
     ],

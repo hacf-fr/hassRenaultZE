@@ -3,8 +3,8 @@ default_config:
 logger:
   default: error
   logs:
-    pyze: debug
     renault_api: debug
     custom_components.renault: debug
-# Uncomment to debug
-# ptvsd:
+
+# If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
+# debugpy:

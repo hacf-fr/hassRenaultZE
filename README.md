@@ -61,6 +61,7 @@ custom_components/renault/services.yaml
 custom_components/renault/strings.json
 ```
 
+
 ## Configuration
 Configuration is done in the UI, but some cases need [specific configuration](CONFIGURE.md).
 
@@ -74,6 +75,7 @@ logger:
     renault_api: debug
     custom_components.renault: debug
 ```
+
 
 ## Contributions are welcome!
 
