@@ -1,6 +1,9 @@
 """Base classes for Renault entities."""
 from typing import Any, Dict
 
+from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import slugify
 from renault_api.kamereon.models import (
     KamereonVehicleBatteryStatusData,
     KamereonVehicleChargeModeData,
@@ -8,10 +11,6 @@ from renault_api.kamereon.models import (
     KamereonVehicleHvacStatusData,
     KamereonVehicleLocationData,
 )
-
-from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util import slugify
 
 from .renault_vehicle import RenaultVehicleProxy
 
