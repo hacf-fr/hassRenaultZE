@@ -1,13 +1,12 @@
 """Config flow to configure Renault component."""
 from typing import Any, Dict
 
-from renault_api.const import AVAILABLE_LOCALES
-import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
+from renault_api.const import AVAILABLE_LOCALES
+import voluptuous as vol
 
 from .const import (  # pylint: disable=unused-import
     CONF_DISTANCES_IN_MILES,
