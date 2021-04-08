@@ -4,6 +4,7 @@ from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_PLUG,
     DOMAIN as BINARY_SENSOR_DOMAIN,
 )
+from homeassistant.components.device_tracker import DOMAIN as DEVICE_TRACKER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -14,6 +15,8 @@ from homeassistant.const import (
     LENGTH_KILOMETERS,
     PERCENTAGE,
     POWER_KILO_WATT,
+    STATE_NOT_HOME,
+    STATE_ON,
     TEMP_CELSIUS,
     TIME_MINUTES,
     VOLUME_LITERS,
@@ -122,16 +125,17 @@ MOCK_VEHICLES = {
             {
                 "entity_id": "binary_sensor.vf1aaaaa555777999_plugged_in",
                 "unique_id": "vf1aaaaa555777999_plugged_in",
-                "result": "on",
+                "result": STATE_ON,
                 "class": DEVICE_CLASS_PLUG,
             },
             {
                 "entity_id": "binary_sensor.vf1aaaaa555777999_charging",
                 "unique_id": "vf1aaaaa555777999_charging",
-                "result": "on",
+                "result": STATE_ON,
                 "class": DEVICE_CLASS_BATTERY_CHARGING,
             },
         ],
+        DEVICE_TRACKER_DOMAIN: [],
     },
     "vehicle_phev": {
         "expected_device": {
@@ -147,6 +151,7 @@ MOCK_VEHICLES = {
             "hvac_status": "hvac_status.json",
             "battery_status": "battery_status.json",
             "charge_mode": "charge_mode.json",
+            "location": "location.json",
         },
         SENSOR_DOMAIN: [
             {
@@ -223,15 +228,22 @@ MOCK_VEHICLES = {
             {
                 "entity_id": "binary_sensor.vf1aaaaa555777123_plugged_in",
                 "unique_id": "vf1aaaaa555777123_plugged_in",
-                "result": "on",
+                "result": STATE_ON,
                 "class": DEVICE_CLASS_PLUG,
             },
             {
                 "entity_id": "binary_sensor.vf1aaaaa555777123_charging",
                 "unique_id": "vf1aaaaa555777123_charging",
-                "result": "on",
+                "result": STATE_ON,
                 "class": DEVICE_CLASS_BATTERY_CHARGING,
             },
+        ],
+        DEVICE_TRACKER_DOMAIN: [
+            {
+                "entity_id": "device_tracker.vf1aaaaa555777123_location",
+                "unique_id": "vf1aaaaa555777123_location",
+                "result": STATE_NOT_HOME,
+            }
         ],
     },
     "vehicle_fuel": {
@@ -248,6 +260,7 @@ MOCK_VEHICLES = {
             "hvac_status": "hvac_status.json",
             "battery_status": "battery_status.json",
             "charge_mode": "charge_mode.json",
+            "location": "location.json",
         },
         SENSOR_DOMAIN: [
             {
@@ -268,6 +281,13 @@ MOCK_VEHICLES = {
                 "result": "5567",
                 "unit": LENGTH_KILOMETERS,
             },
+        ],
+        DEVICE_TRACKER_DOMAIN: [
+            {
+                "entity_id": "device_tracker.vf1aaaaa555777123_location",
+                "unique_id": "vf1aaaaa555777123_location",
+                "result": STATE_NOT_HOME,
+            }
         ],
     },
 }
