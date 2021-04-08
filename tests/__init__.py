@@ -77,7 +77,7 @@ async def create_vehicle_proxy(hass, vehicle_type: str) -> RenaultVehicleProxy:
 
     vehicles_response: models.KamereonVehiclesResponse = (
         schemas.KamereonVehiclesResponseSchema.loads(
-            load_fixture(f"{vehicle_type}.json")
+            load_fixture(f"vehicle_{vehicle_type}.json")
         )
     )
     vehicle_details = vehicles_response.vehicleLinks[0].vehicleDetails

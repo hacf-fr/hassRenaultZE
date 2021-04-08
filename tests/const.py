@@ -40,13 +40,13 @@ MOCK_CONFIG = {
 }
 
 MOCK_VEHICLES = {
-    "vehicle_ev": {
+    "zoe_40": {
         "expected_device": {
             "identifiers": {(DOMAIN, "VF1AAAAA555777999")},
             "manufacturer": "Renault",
             "model": "Zoe",
             "name": "REG-NUMBER",
-            "sw_version": "X102VE",
+            "sw_version": "X101VE",
         },
         "endpoints_available": [True, True, True, True, False],
         "endpoints": {
@@ -54,6 +54,104 @@ MOCK_VEHICLES = {
             "hvac_status": "hvac_status.json",
             "battery_status": "battery_status.json",
             "charge_mode": "charge_mode.json",
+        },
+        SENSOR_DOMAIN: [
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_battery_autonomy",
+                "unique_id": "vf1aaaaa555777999_battery_autonomy",
+                "result": "141",
+                "unit": LENGTH_KILOMETERS,
+            },
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_battery_level",
+                "unique_id": "vf1aaaaa555777999_battery_level",
+                "result": "60",
+                "unit": PERCENTAGE,
+                "class": DEVICE_CLASS_BATTERY,
+            },
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_battery_temperature",
+                "unique_id": "vf1aaaaa555777999_battery_temperature",
+                "result": "20",
+                "unit": TEMP_CELSIUS,
+                "class": DEVICE_CLASS_TEMPERATURE,
+            },
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_charge_mode",
+                "unique_id": "vf1aaaaa555777999_charge_mode",
+                "result": "always",
+                "class": DEVICE_CLASS_CHARGE_MODE,
+            },
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_charge_state",
+                "unique_id": "vf1aaaaa555777999_charge_state",
+                "result": "charge_in_progress",
+                "class": DEVICE_CLASS_CHARGE_STATE,
+            },
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_charging_power",
+                "unique_id": "vf1aaaaa555777999_charging_power",
+                "result": "0.027",
+                "unit": POWER_KILO_WATT,
+                "class": DEVICE_CLASS_ENERGY,
+            },
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_charging_remaining_time",
+                "unique_id": "vf1aaaaa555777999_charging_remaining_time",
+                "result": "145",
+                "unit": TIME_MINUTES,
+            },
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_mileage",
+                "unique_id": "vf1aaaaa555777999_mileage",
+                "result": "49114",
+                "unit": LENGTH_KILOMETERS,
+            },
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_outside_temperature",
+                "unique_id": "vf1aaaaa555777999_outside_temperature",
+                "result": "8.0",
+                "unit": TEMP_CELSIUS,
+                "class": DEVICE_CLASS_TEMPERATURE,
+            },
+            {
+                "entity_id": "sensor.vf1aaaaa555777999_plug_state",
+                "unique_id": "vf1aaaaa555777999_plug_state",
+                "result": "plugged",
+                "class": DEVICE_CLASS_PLUG_STATE,
+            },
+        ],
+        BINARY_SENSOR_DOMAIN: [
+            {
+                "entity_id": "binary_sensor.vf1aaaaa555777999_plugged_in",
+                "unique_id": "vf1aaaaa555777999_plugged_in",
+                "result": STATE_ON,
+                "class": DEVICE_CLASS_PLUG,
+            },
+            {
+                "entity_id": "binary_sensor.vf1aaaaa555777999_charging",
+                "unique_id": "vf1aaaaa555777999_charging",
+                "result": STATE_ON,
+                "class": DEVICE_CLASS_BATTERY_CHARGING,
+            },
+        ],
+        DEVICE_TRACKER_DOMAIN: [],
+    },
+    "zoe_50": {
+        "expected_device": {
+            "identifiers": {(DOMAIN, "VF1AAAAA555777999")},
+            "manufacturer": "Renault",
+            "model": "Zoe",
+            "name": "REG-NUMBER",
+            "sw_version": "X102VE",
+        },
+        "endpoints_available": [True, True, True, True, True],
+        "endpoints": {
+            "cockpit": "cockpit_ev.json",
+            "hvac_status": "hvac_status.json",
+            "battery_status": "battery_status.json",
+            "charge_mode": "charge_mode.json",
+            "location": "location.json",
         },
         SENSOR_DOMAIN: [
             {
@@ -135,9 +233,15 @@ MOCK_VEHICLES = {
                 "class": DEVICE_CLASS_BATTERY_CHARGING,
             },
         ],
-        DEVICE_TRACKER_DOMAIN: [],
+        DEVICE_TRACKER_DOMAIN: [
+            {
+                "entity_id": "device_tracker.vf1aaaaa555777999_location",
+                "unique_id": "vf1aaaaa555777999_location",
+                "result": STATE_NOT_HOME,
+            }
+        ],
     },
-    "vehicle_phev": {
+    "captur_phev": {
         "expected_device": {
             "identifiers": {(DOMAIN, "VF1AAAAA555777123")},
             "manufacturer": "Renault",
@@ -246,7 +350,7 @@ MOCK_VEHICLES = {
             }
         ],
     },
-    "vehicle_fuel": {
+    "captur_fuel": {
         "expected_device": {
             "identifiers": {(DOMAIN, "VF1AAAAA555777123")},
             "manufacturer": "Renault",
