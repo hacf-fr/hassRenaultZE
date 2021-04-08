@@ -1,4 +1,4 @@
-"""Test the Renault setup process."""
+"""Tests for Renault setup process."""
 from unittest.mock import patch
 
 import aiohttp
