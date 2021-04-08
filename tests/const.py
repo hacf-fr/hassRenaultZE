@@ -1,4 +1,9 @@
 """Constants for the Renault integration tests."""
+from homeassistant.components.binary_sensor import (
+    DEVICE_CLASS_BATTERY_CHARGING,
+    DEVICE_CLASS_PLUG,
+    DOMAIN as BINARY_SENSOR_DOMAIN,
+)
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -113,6 +118,20 @@ MOCK_VEHICLES = {
                 "class": DEVICE_CLASS_PLUG_STATE,
             },
         ],
+        BINARY_SENSOR_DOMAIN: [
+            {
+                "entity_id": "binary_sensor.vf1aaaaa555777999_plugged_in",
+                "unique_id": "vf1aaaaa555777999_plugged_in",
+                "result": "on",
+                "class": DEVICE_CLASS_PLUG,
+            },
+            {
+                "entity_id": "binary_sensor.vf1aaaaa555777999_charging",
+                "unique_id": "vf1aaaaa555777999_charging",
+                "result": "on",
+                "class": DEVICE_CLASS_BATTERY_CHARGING,
+            },
+        ],
     },
     "vehicle_phev": {
         "expected_device": {
@@ -198,6 +217,20 @@ MOCK_VEHICLES = {
                 "unique_id": "vf1aaaaa555777123_plug_state",
                 "result": "plugged",
                 "class": DEVICE_CLASS_PLUG_STATE,
+            },
+        ],
+        BINARY_SENSOR_DOMAIN: [
+            {
+                "entity_id": "binary_sensor.vf1aaaaa555777123_plugged_in",
+                "unique_id": "vf1aaaaa555777123_plugged_in",
+                "result": "on",
+                "class": DEVICE_CLASS_PLUG,
+            },
+            {
+                "entity_id": "binary_sensor.vf1aaaaa555777123_charging",
+                "unique_id": "vf1aaaaa555777123_charging",
+                "result": "on",
+                "class": DEVICE_CLASS_BATTERY_CHARGING,
             },
         ],
     },
