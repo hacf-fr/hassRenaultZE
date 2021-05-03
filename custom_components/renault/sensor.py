@@ -90,7 +90,7 @@ class RenaultBatteryLevelSensor(RenaultBatteryDataEntity):
     @property
     def state(self) -> Optional[int]:
         """Return the state of this entity."""
-        return self.data.batteryLevel
+        return self.data.batteryLevel if self.data else None
 
     @property
     def device_class(self) -> str:
@@ -105,7 +105,10 @@ class RenaultBatteryLevelSensor(RenaultBatteryDataEntity):
     @property
     def icon(self) -> str:
         """Icon handling."""
-        charging = self.data.get_charging_status() == ChargeState.CHARGE_IN_PROGRESS
+        charging = (
+            self.data
+            and self.data.get_charging_status() == ChargeState.CHARGE_IN_PROGRESS
+        )
         return icon_for_battery_level(battery_level=self.state, charging=charging)
 
     @property
@@ -147,7 +150,7 @@ class RenaultChargeModeSensor(RenaultChargeModeDataEntity):
     @property
     def icon(self) -> str:
         """Icon handling."""
-        if self.data.chargeMode == "schedule_mode":
+        if self.data and self.data.chargeMode == "schedule_mode":
             return "mdi:calendar-clock"
         return "mdi:calendar-remove"
 
@@ -227,7 +230,7 @@ class RenaultPlugStateSensor(RenaultBatteryDataEntity):
         """Return the state of this entity."""
         return (
             slugify(self.data.get_plug_status().name)
-            if self.data.plugStatus is not None
+            if self.data and self.data.plugStatus is not None
             else None
         )
 
@@ -252,7 +255,7 @@ class RenaultChargeStateSensor(RenaultBatteryDataEntity):
         """Return the state of this entity."""
         return (
             slugify(self.data.get_charging_status().name)
-            if self.data.chargingStatus is not None
+            if self.data and self.data.chargingStatus is not None
             else None
         )
 

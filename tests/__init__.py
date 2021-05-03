@@ -3,10 +3,11 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from homeassistant.config_entries import CONN_CLASS_CLOUD_POLL
+from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import aiohttp_client
 from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
-from renault_api.kamereon import models, schemas
+from renault_api.kamereon import exceptions, models, schemas
 from renault_api.renault_vehicle import RenaultVehicle
 
 from custom_components.renault.const import (
@@ -19,7 +20,7 @@ from custom_components.renault.renault_vehicle import RenaultVehicleProxy
 from .const import MOCK_VEHICLES
 
 
-async def setup_renault_integration(hass):
+async def setup_renault_integration(hass: HomeAssistant):
     """Create the Renault integration."""
     config_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -46,7 +47,9 @@ async def setup_renault_integration(hass):
     return config_entry
 
 
-async def create_vehicle_proxy(hass, vehicle_type: str) -> RenaultVehicleProxy:
+async def create_vehicle_proxy(
+    hass: HomeAssistant, vehicle_type: str
+) -> RenaultVehicleProxy:
     """Create a vehicle proxy for testing."""
     mock_vehicle = MOCK_VEHICLES[vehicle_type]
     mock_get_cockpit = schemas.KamereonVehicleDataResponseSchema.loads(
@@ -108,6 +111,55 @@ async def create_vehicle_proxy(hass, vehicle_type: str) -> RenaultVehicleProxy:
     ), patch(
         "custom_components.renault.renault_vehicle.RenaultVehicleProxy.get_location",
         return_value=mock_get_location,
+    ):
+        await vehicle_proxy.async_initialise()
+    return vehicle_proxy
+
+
+async def create_unavailable_vehicle_proxy(
+    hass: HomeAssistant, vehicle_type: str
+) -> RenaultVehicleProxy:
+    """Create a vehicle proxy for testing unavailable entities."""
+    mock_vehicle = MOCK_VEHICLES[vehicle_type]
+
+    vehicles_response: models.KamereonVehiclesResponse = (
+        schemas.KamereonVehiclesResponseSchema.loads(
+            load_fixture(f"vehicle_{vehicle_type}.json")
+        )
+    )
+    vehicle_details = vehicles_response.vehicleLinks[0].vehicleDetails
+    vehicle = RenaultVehicle(
+        vehicles_response.accountId,
+        vehicle_details.vin,
+        websession=aiohttp_client.async_get_clientsession(hass),
+    )
+
+    invalid_upstream_exception = exceptions.InvalidUpstreamException(
+        "err.tech.500",
+        "Invalid response from the upstream server (The request sent to the GDC is erroneous) ; 502 Bad Gateway",
+    )
+
+    vehicle_proxy = RenaultVehicleProxy(
+        hass, vehicle, vehicle_details, timedelta(seconds=300), False
+    )
+    with patch(
+        "custom_components.renault.renault_vehicle.RenaultVehicleProxy.endpoint_available",
+        side_effect=mock_vehicle["endpoints_available"],
+    ), patch(
+        "custom_components.renault.renault_vehicle.RenaultVehicleProxy.get_cockpit",
+        side_effect=invalid_upstream_exception,
+    ), patch(
+        "custom_components.renault.renault_vehicle.RenaultVehicleProxy.get_hvac_status",
+        side_effect=invalid_upstream_exception,
+    ), patch(
+        "custom_components.renault.renault_vehicle.RenaultVehicleProxy.get_battery_status",
+        side_effect=invalid_upstream_exception,
+    ), patch(
+        "custom_components.renault.renault_vehicle.RenaultVehicleProxy.get_charge_mode",
+        side_effect=invalid_upstream_exception,
+    ), patch(
+        "custom_components.renault.renault_vehicle.RenaultVehicleProxy.get_location",
+        side_effect=invalid_upstream_exception,
     ):
         await vehicle_proxy.async_initialise()
     return vehicle_proxy
