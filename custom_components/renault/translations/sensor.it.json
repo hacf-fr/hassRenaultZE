@@ -1,12 +1,12 @@
 {
-  "stato": {
+  "state": {
     "renault__plug_state": {
       "unplugged": "Scollegato",
       "plugged": "Collegato",
       "plug_error": "Errore collegamento",
       "plug_unknown": "Collegamento sconosciuto"
     },
-    "renault__stato_ricarica": {
+    "renault__charge_state": {
       "not_in_charge": "Non in carica",
       "waiting_for_a_planned_charge": "In attesa del programma ricarica",
       "charge_ended": "Ricarica terminata",
@@ -16,7 +16,7 @@
       "charge_error": "Non in carica o Scollegato",
       "unavailable": "Non disponibile"
     },
-    "renault__modalità_ricarica": {
+    "renault__charge_mode": {
       "always": "Istantaneo",
       "always_charging": "Istantaneo",
       "schedule_mode": "Programmato"
