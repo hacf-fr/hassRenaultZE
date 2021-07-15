@@ -1,0 +1,37 @@
+{
+  "config: {
+    "abort": {
+      "already_configured": "Account già configurato",
+      "kamereon_no_account": "Impossibile trovare account Kamereon."
+    },
+    "error": {
+      "invalid_credentials": "Credenziali invalide."
+    },
+    "step": {
+      "kamereon": {
+        "data": {
+          "kamereon_account_id": "Account Kamereon"
+      },
+      "title": "Selezionare account Kamereon"
+    },
+    "user": {
+      "data": {
+        "locale": "Locale",
+        "username": "Email",
+        "password": "Password"
+      },
+      "title": "Credenziali Renault"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Tempo fra le chiamate API",
+          "distances_in_miles": "Mostra la distanza in miglia"
+        }
+      }
+    }
+  }
+}
