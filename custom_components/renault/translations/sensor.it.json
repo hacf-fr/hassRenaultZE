@@ -1,25 +1,25 @@
 {
   "state": {
     "renault__plug_state": {
-      "unplugged": "Scollegato",
-      "plugged": "Collegato",
+      "unplugged": "Scollegata",
+      "plugged": "Collegata",
       "plug_error": "Errore collegamento",
       "plug_unknown": "Collegamento sconosciuto"
     },
     "renault__charge_state": {
       "not_in_charge": "Non in carica",
-      "waiting_for_a_planned_charge": "In attesa del programma ricarica",
+      "waiting_for_a_planned_charge": "In attesa della ricarica in programma",
       "charge_ended": "Ricarica terminata",
-      "waiting_for_current_charge": "In attesa di corrente per ricarica",
-      "energy_flap_opened": "Sportello ricarica aperto",
-      "charge_in_progress": "Ricarica",
-      "charge_error": "Non in carica o Scollegato",
+      "waiting_for_current_charge": "In attesa dell'attuale ricarica",
+      "energy_flap_opened": "Sportello di ricarica aperto",
+      "charge_in_progress": "In carica",
+      "charge_error": "Errore: Non in carica o scollegata",
       "unavailable": "Non disponibile"
     },
     "renault__charge_mode": {
-      "always": "Istantaneo",
-      "always_charging": "Istantaneo",
-      "schedule_mode": "Programmato"
+      "always": "Istantanea",
+      "always_charging": "Istantanea",
+      "schedule_mode": "Programmata"
     }
   }
 }
