@@ -1,5 +1,5 @@
 {
-  "config: {
+  "config": {
     "abort": {
       "already_configured": "Account già configurato",
       "kamereon_no_account": "Impossibile trovare account Kamereon."
