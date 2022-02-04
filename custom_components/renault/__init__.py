@@ -1,17 +1,28 @@
 """Support for Renault devices."""
 import aiohttp
+from awesomeversion import AwesomeVersion
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import __version__, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.typing import HomeAssistantType
+import logging
+
 
 from .const import CONF_LOCALE, DOMAIN, SUPPORTED_PLATFORMS
 from .renault_hub import RenaultHub
 from .services import async_setup_services, async_unload_services
 
+_LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup(hass, config):
     """Set up renault integrations."""
+    if AwesomeVersion(__version__) >= "2021.10.0b0":
+        _LOGGER.error(
+            "The Renault integration was originally merged into core in 2021.8 "
+            "and finalised in 2021.10. The use of this custom component has been "
+            "deprecated since then and should be removed from your installation"
+        )
     return True
 
 
