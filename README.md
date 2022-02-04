@@ -1,5 +1,7 @@
 # renault
 
+# :warning: The Renault integration was originally merged into core in 2021.8 and finalised in 2021.10. The use of this custom component has been deprecated since then and should no longer be used
+
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
